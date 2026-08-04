@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recomp Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="theme-color" content="#15171b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Recomp">
+<style>
+:root{
+  --bg:#15171b; --surface:#1e2126; --surface-2:#262a31; --border:#33383f;
+  --text:#ededea; --text-muted:#8a8f98;
+  --training:#e4572e; --training-dim:rgba(228,87,46,.14);
+  --rest:#5b8aa6; --rest-dim:rgba(91,138,166,.14);
+  --protein:#4fa37d; --carbs:#d9a441; --fat:#b97bc4; --kcal:#f0dfc0;
+  --danger:#d9534f;
+  --font-serif:ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,Roboto,sans-serif;
+  --font-mono:ui-monospace,'SF Mono','Cascadia Code','Roboto Mono',Consolas,monospace;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;-webkit-font-smoothing:antialiased;}
+button{font-family:var(--font-sans);}
+button:focus-visible, input:focus-visible, select:focus-visible{outline:2px solid var(--training);outline-offset:2px;}
+.app{max-width:560px;margin:0 auto;padding:16px 16px 72px;min-height:100vh;}
+
+.brand-strip{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--text-muted);text-align:center;margin-bottom:14px;text-transform:uppercase;}
+.loading-state{text-align:center;padding:90px 20px;color:var(--text-muted);font-family:var(--font-mono);}
+
+/* Header */
+.app-header{padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.date-nav{display:flex;align-items:center;justify-content:center;gap:16px;}
+.nav-btn{background:none;border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;transition:background .15s,border-color .15s;line-height:1;}
+.nav-btn:hover{background:var(--surface-2);}
+.date-display{text-align:center;position:relative;min-width:190px;}
+.date-label{font-family:var(--font-serif);font-size:20px;font-weight:600;letter-spacing:.2px;}
+.date-picker{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;border:none;}
+.header-row2{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap;}
+.pill{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:999px;font-weight:600;}
+.pill-training{background:var(--training-dim);color:var(--training);border:1px solid var(--training);}
+.pill-rest{background:var(--rest-dim);color:var(--rest);border:1px solid var(--rest);}
+.link-btn{background:none;border:none;color:var(--text-muted);font-size:12px;text-decoration:underline;cursor:pointer;padding:2px 4px;}
+.link-btn:hover{color:var(--text);}
+
+/* Macro panel */
+.macro-panel{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;}
+.macro-panel.training{border-top-color:var(--training);}
+.macro-panel.rest{border-top-color:var(--rest);}
+.macro-row{display:grid;grid-template-columns:66px 1fr auto;align-items:center;gap:12px;margin-bottom:14px;}
+.macro-row:last-of-type{margin-bottom:8px;}
+.macro-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;}
+.macro-bar-track{position:relative;height:10px;background:var(--surface-2);border-radius:6px;}
+.macro-bar-fill{position:absolute;left:0;top:0;height:100%;border-radius:6px;transition:width .4s ease;}
+.macro-bar-marker{position:absolute;top:-3px;width:2px;height:16px;background:var(--text-muted);border-radius:1px;}
+.macro-value{font-family:var(--font-mono);font-size:13px;text-align:right;min-width:96px;}
+.macro-value.over{color:var(--training);}
+.plan-footnote{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);text-align:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
+
+/* Weekly panel */
+.weekly-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:20px;}
+.weekly-head{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:flex;justify-content:space-between;margin-bottom:10px;}
+.weekly-logged{font-family:var(--font-mono);text-transform:none;letter-spacing:0;}
+.weekly-rows{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.weekly-row{display:flex;flex-direction:column;gap:2px;}
+.weekly-row span:first-child{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;}
+.weekly-val{font-family:var(--font-mono);font-size:13px;}
+.weekly-target{color:var(--text-muted);font-size:11px;}
+
+/* Meal list */
+.meal-list{display:flex;flex-direction:column;gap:10px;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);border:1px dashed var(--border);border-radius:var(--radius);}
+.meal-card{display:flex;align-items:flex-start;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;transition:border-color .2s;}
+.meal-card.checked{border-color:var(--protein);}
+.meal-card.checked .meal-name{opacity:.85;}
+.check-toggle{background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;margin-top:2px;}
+.check-box{display:block;width:22px;height:22px;border-radius:6px;border:2px solid var(--border);transition:all .15s;position:relative;}
+.meal-card.checked .check-box{background:var(--protein);border-color:var(--protein);}
+.meal-card.checked .check-box::after{content:'';position:absolute;left:6px;top:2px;width:6px;height:11px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg);}
+.meal-info{flex:1;min-width:0;}
+.meal-name{font-family:var(--font-serif);font-weight:600;font-size:15px;margin-bottom:3px;}
+.meal-macros{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);}
+.meal-items{margin-top:8px;font-size:12px;}
+.meal-items summary{color:var(--text-muted);cursor:pointer;}
+.meal-items ul{margin:6px 0 0;padding-left:18px;color:var(--text-muted);}
+.meal-actions{display:flex;flex-direction:column;gap:6px;}
+.icon-btn{background:none;border:1px solid var(--border);color:var(--text-muted);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:13px;}
+.icon-btn:hover{color:var(--text);border-color:var(--text-muted);}
+.add-meal-btn{background:none;border:1px dashed var(--border);color:var(--text-muted);padding:12px;border-radius:var(--radius);cursor:pointer;font-size:14px;margin-top:4px;width:100%;transition:all .15s;}
+.add-meal-btn:hover{border-color:var(--text);color:var(--text);}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,11,13,.7);display:flex;align-items:flex-end;justify-content:center;z-index:100;backdrop-filter:blur(2px);}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:20px;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.modal-head h3{font-family:var(--font-serif);margin:0;font-size:18px;}
+.field-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin:14px 0 6px;}
+.text-input, select.text-input{width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;}
+
+/* Tabs */
+.tab-row{display:flex;gap:8px;margin-bottom:4px;}
+.tab-btn{flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);padding:9px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
+.tab-btn.active{background:var(--protein);color:#0e1410;border-color:var(--protein);}
+
+.ing-results{max-height:160px;overflow-y:auto;margin-top:8px;border:1px solid var(--border);border-radius:8px;}
+.ing-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--border);font-size:13px;gap:8px;}
+.ing-row:last-child{border-bottom:none;}
+.ing-name{flex:1;min-width:0;}
+.ing-source-tag{font-size:9px;color:var(--rest);border:1px solid var(--rest);border-radius:4px;padding:1px 4px;margin-left:6px;text-transform:uppercase;}
+.ing-meta{font-family:var(--font-mono);color:var(--text-muted);font-size:11px;white-space:nowrap;}
+.ing-row button{background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;flex-shrink:0;}
+.ing-row button:hover{border-color:var(--protein);color:var(--protein);}
+.new-food-toggle{background:none;border:none;color:var(--rest);font-size:12px;text-decoration:underline;cursor:pointer;padding:8px 2px;display:block;}
+.new-food-form{border:1px dashed var(--rest);border-radius:10px;padding:12px;margin-top:8px;background:var(--rest-dim);}
+.macro-input-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.macro-input-grid label{font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px;}
+.lookup-row{display:flex;gap:8px;margin-top:8px;align-items:flex-start;}
+.lookup-row .text-input{flex:1;}
+.lookup-btn{background:var(--rest);color:#0e1720;border:1px solid var(--rest);border-radius:8px;padding:0 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.lookup-btn:disabled{opacity:.6;cursor:wait;}
+.lookup-status{font-size:12px;color:var(--text-muted);margin-top:6px;min-height:16px;}
+.lookup-status.error{color:var(--training);}
+.hint-text{font-size:11px;color:var(--text-muted);margin-top:6px;}
+
+.selected-head{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 6px;}
+.selected-list{display:flex;flex-direction:column;gap:6px;}
+.sel-row{display:grid;grid-template-columns:1fr 56px auto 64px auto;align-items:center;gap:6px;background:var(--surface-2);padding:8px 10px;border-radius:8px;}
+.sel-name{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.qty-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:5px 6px;border-radius:6px;font-family:var(--font-mono);font-size:13px;}
+.sel-unit{font-size:10px;color:var(--text-muted);white-space:nowrap;}
+.sel-sub{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);text-align:right;white-space:nowrap;}
+.remove-btn{background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:0 4px;}
+.remove-btn:hover{color:var(--danger);}
+.modal-total{font-family:var(--font-mono);font-size:14px;text-align:center;padding:12px;background:var(--surface-2);border-radius:8px;margin-top:16px;}
+.modal-actions{display:flex;gap:10px;margin-top:16px;}
+.btn-ghost,.btn-primary{flex:1;padding:12px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border);}
+.btn-ghost{background:none;color:var(--text-muted);}
+.btn-primary{background:var(--protein);color:#0e1410;border-color:var(--protein);}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-primary:disabled{opacity:.6;cursor:wait;}
+.empty-hint{padding:12px;text-align:center;color:var(--text-muted);font-size:12px;}
+.save-warning{color:var(--training);font-size:12px;text-align:center;margin-top:8px;display:none;}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+@media (min-width:640px){.modal-backdrop{align-items:center;}.modal{border-radius:16px;}}
+
+.save-indicator{position:fixed;bottom:16px;right:16px;left:auto;max-width:calc(100% - 32px);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text-muted);display:none;align-items:center;gap:8px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,.35);}
+.install-banner{position:fixed;left:16px;right:16px;bottom:16px;background:var(--surface);border:1px solid var(--protein);border-radius:12px;padding:14px 16px;z-index:210;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.install-banner.visible{display:block;}
+.install-banner .install-title{font-family:var(--font-serif);font-weight:600;font-size:14px;margin-bottom:4px;}
+.install-banner .install-body{font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;}
+.install-banner .install-actions{display:flex;gap:8px;}
+.install-banner button{flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);}
+.install-banner .install-primary{background:var(--protein);color:#0e1410;border-color:var(--protein);}
+.install-banner .install-dismiss{background:none;color:var(--text-muted);}
+.save-indicator.visible{display:flex;}
+.save-indicator.error{color:var(--training);border-color:var(--training);}
+.save-indicator button{background:none;border:1px solid currentColor;color:inherit;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;flex-shrink:0;}
+
+.view-tabs{display:flex;gap:8px;margin-bottom:16px;}
+.view-tab{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text-muted);padding:9px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
+.view-tab.active{background:var(--surface-2);color:var(--text);border-color:var(--text-muted);}
+.progress-head{font-family:var(--font-serif);font-size:22px;font-weight:600;text-align:center;margin-bottom:18px;}
+
+.body-log-panel,.training-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;}
+.panel-head{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.body-log-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.body-log-grid label{font-size:10px;color:var(--text-muted);display:block;margin-bottom:4px;}
+.training-row{display:flex;gap:10px;}
+.toggle-pill{flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);padding:10px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:600;}
+.toggle-pill.active{background:var(--protein);color:#0e1410;border-color:var(--protein);}
+
+.progress-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;}
+.weight-chart{width:100%;height:auto;display:block;}
+.chart-caption{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;}
+.inbody-row,.consistency-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.inbody-row:last-child,.consistency-row:last-child{border-bottom:none;}
+.inbody-val,.consistency-val{font-family:var(--font-mono);}
+.inbody-delta{font-family:var(--font-mono);font-size:11px;min-width:48px;text-align:right;}
+.inbody-delta.up{color:var(--carbs);}
+.inbody-delta.down{color:var(--rest);}
+.consistency-note{color:var(--text-muted);font-size:11px;font-weight:400;}
+.error-boundary{background:var(--surface);border:1px solid var(--training);border-radius:var(--radius);padding:20px;margin-top:24px;}
+.eb-title{font-family:var(--font-serif);font-weight:600;font-size:16px;margin-bottom:8px;}
+.eb-body{font-size:13px;color:var(--text-muted);line-height:1.55;margin-bottom:14px;}
+.eb-actions{display:flex;gap:10px;margin-bottom:12px;}
+.eb-details{font-size:12px;color:var(--text-muted);}
+.eb-details summary{cursor:pointer;}
+.eb-details pre{white-space:pre-wrap;word-break:break-word;background:var(--surface-2);padding:10px;border-radius:8px;font-size:11px;margin-top:8px;}
+
+</style>
+</head>
+<body>
+<div class="app" id="app"><div class="loading-state">Loading your plan&hellip;</div></div>
+<div class="save-indicator" id="saveIndicator" aria-live="polite"></div>
+<div class="install-banner" id="installBanner"></div>
+
+<script>
+/* ===================== BUILT-IN INGREDIENT DATABASE ===================== */
+const INGREDIENTS = [
+  {id:'tofu', name:'House Foods Extra Firm Tofu', unit:'g', per:100, unitLabel:'g', kcal:82.35, p:8.24, c:2.35, f:5.88},
+  {id:'tortilla', name:'Mission Carb Balance Tortilla', unit:'piece', per:1, unitLabel:'tortilla', kcal:70, p:6, c:17, f:2.5},
+  {id:'banana', name:'Large Banana', unit:'piece', per:1, unitLabel:'banana', kcal:121, p:1.5, c:31, f:0.4},
+  {id:'pepponion', name:'Sautéed Peppers & Onion', unit:'serving', per:1, unitLabel:'serving', kcal:45, p:1.5, c:10, f:0.3},
+  {id:'yogurt', name:'Kirkland 0% Greek Yogurt', unit:'g', per:100, unitLabel:'g', kcal:58.8, p:10, c:3.5, f:0},
+  {id:'almondmilk', name:'365 Unsweetened Almond Milk', unit:'cup', per:1, unitLabel:'cup', kcal:40, p:1, c:2, f:3},
+  {id:'blackbeans', name:'Black Beans (canned)', unit:'g', per:100, unitLabel:'g', kcal:91, p:5.9, c:16.6, f:0.4},
+  {id:'rice', name:'Cooked White Rice', unit:'g', per:100, unitLabel:'g', kcal:130, p:2.4, c:28, f:0.3},
+  {id:'oliveoil', name:'Olive Oil', unit:'tsp', per:1, unitLabel:'tsp', kcal:40, p:0, c:0, f:4.5},
+  {id:'tacoseasoning', name:'Taco Seasoning', unit:'serving', per:1, unitLabel:'serving', kcal:5, p:0.2, c:1, f:0.1},
+  {id:'chipotleseasoning', name:'Chipotle Seasoning', unit:'serving', per:1, unitLabel:'serving', kcal:10, p:0.3, c:2, f:0},
+  {id:'whey', name:'ON Gold Standard Whey', unit:'scoop', per:1, unitLabel:'scoop', kcal:120, p:24, c:3, f:1},
+  {id:'oats', name:'Dry Rolled Oats', unit:'g', per:100, unitLabel:'g', kcal:389, p:16.9, c:66.3, f:6.9},
+  {id:'eggwhite', name:'Egg White (large)', unit:'piece', per:1, unitLabel:'egg white', kcal:17, p:3.6, c:0.2, f:0.05},
+  {id:'wholeegg', name:'Whole Egg (large)', unit:'piece', per:1, unitLabel:'egg', kcal:72, p:6.3, c:0.36, f:4.8},
+  {id:'date', name:'Medjool Date', unit:'piece', per:1, unitLabel:'date', kcal:66, p:0.4, c:18, f:0},
+  {id:'sriracha', name:'TJ Sriracha', unit:'tbsp', per:1, unitLabel:'tbsp', kcal:10, p:0, c:2, f:0},
+  {id:'dkbread', name:"Dave's Killer Bread", unit:'piece', per:1, unitLabel:'slice', kcal:110, p:5, c:22, f:2},
+  {id:'apple', name:'Medium Apple', unit:'piece', per:1, unitLabel:'apple', kcal:95, p:0.5, c:25, f:0.3},
+  {id:'almond', name:'Almond', unit:'piece', per:1, unitLabel:'almond', kcal:7, p:0.26, c:0.26, f:0.6},
+  {id:'fishoil', name:'Fish Oil 1200mg', unit:'piece', per:1, unitLabel:'softgel', kcal:11, p:0, c:0, f:1.2},
+  {id:'vitacraves', name:'VitaCraves Gummy', unit:'piece', per:1, unitLabel:'gummy', kcal:7.5, p:0, c:2, f:0},
+  {id:'cottagecheese', name:'Low-Fat Cottage Cheese', unit:'g', per:100, unitLabel:'g', kcal:80, p:11.1, c:3.56, f:2.22},
+  {id:'blueberries', name:'Blueberries', unit:'g', per:100, unitLabel:'g', kcal:57, p:0.77, c:14.5, f:0.31},
+];
+
+/* ===================== MEAL TEMPLATES ===================== */
+const BREAKFAST_ITEMS = [
+  {ing:'eggwhite',qty:4},{ing:'wholeegg',qty:1},{ing:'oats',qty:80},
+  {ing:'almondmilk',qty:1},{ing:'date',qty:2.5},{ing:'yogurt',qty:40},
+  {ing:'sriracha',qty:1},{ing:'dkbread',qty:2},{ing:'apple',qty:1},{ing:'almond',qty:5}
+];
+const LUNCH_ITEMS = [
+  {ing:'tofu',qty:200},{ing:'oliveoil',qty:1},{ing:'tacoseasoning',qty:1},
+  {ing:'rice',qty:100},{ing:'blackbeans',qty:100},{ing:'yogurt',qty:30},{ing:'pepponion',qty:1}
+];
+const SUPPLEMENTS_ITEMS = [ {ing:'fishoil',qty:2},{ing:'vitacraves',qty:2} ];
+const DINNER_ITEMS = [
+  {ing:'tofu',qty:200},{ing:'chipotleseasoning',qty:1},{ing:'blackbeans',qty:100},
+  {ing:'tortilla',qty:1},{ing:'yogurt',qty:30},{ing:'pepponion',qty:1}
+];
+const PRESLEEP_ITEMS = [ {ing:'cottagecheese',qty:225},{ing:'blueberries',qty:65} ];
+
+/* These are SEED DEFAULTS ONLY. On first run they are copied into the user's
+   profile, after which the profile is the single source of truth and these
+   constants are never read again. Editing a plan edits profile data, not code. */
+const DEFAULT_TRAINING_TEMPLATE = [
+  {id:'breakfast', name:'Breakfast + Snacks', items:BREAKFAST_ITEMS},
+  {id:'lunch', name:'Lunch — Tofu Rice & Beans Bowl', items:LUNCH_ITEMS},
+  {id:'supplements', name:'Supplements', items:SUPPLEMENTS_ITEMS},
+  {id:'preworkout', name:'Pre-Workout', items:[{ing:'banana',qty:1}]},
+  {id:'postworkout', name:'Post-Workout', items:[{ing:'whey',qty:1},{ing:'banana',qty:1},{ing:'oats',qty:35}]},
+  {id:'dinner', name:'Dinner — Chipotle Tofu Wrap', items:DINNER_ITEMS},
+  {id:'presleep', name:'Pre-Sleep', items:PRESLEEP_ITEMS},
+];
+const DEFAULT_REST_TEMPLATE = [
+  {id:'breakfast', name:'Breakfast + Snacks', items:BREAKFAST_ITEMS},
+  {id:'lunch', name:'Lunch — Tofu Rice & Beans Bowl', items:LUNCH_ITEMS},
+  {id:'supplements', name:'Supplements', items:SUPPLEMENTS_ITEMS},
+  {id:'middayprotein', name:'Midday Protein', items:[{ing:'whey',qty:1}]},
+  {id:'dinner', name:'Dinner — Chipotle Tofu Wrap', items:DINNER_ITEMS},
+  {id:'presleep', name:'Pre-Sleep', items:PRESLEEP_ITEMS},
+];
+/* Weekday index 0=Sunday .. 6=Saturday */
+const DEFAULT_DAY_TYPES = ['rest','training','training','training','training','training','rest'];
+
+/* ===================== APP DATA (profile + custom foods) ===================== */
+const CURRENT_SCHEMA = 2;
+
+let meta = null; // populated by init(); shape guaranteed by migrateMeta()
+
+function deepClone(x){ return JSON.parse(JSON.stringify(x)); }
+
+function createDefaultMeta(){
+  return {
+    schemaVersion: CURRENT_SCHEMA,
+    customFoods: [],
+    profile: {
+      createdAt: new Date().toISOString(),
+      dayTypes: DEFAULT_DAY_TYPES.slice(),
+      templates: {
+        training: deepClone(DEFAULT_TRAINING_TEMPLATE),
+        rest: deepClone(DEFAULT_REST_TEMPLATE),
+      },
+      /* 'auto' derives targets from the template totals (plan-first users);
+         'manual' uses the stored numbers verbatim (log-first users). */
+      targetsMode: 'auto',
+      targets: { training: null, rest: null },
+      onboarded: false,
+    },
+  };
+}
+
+function allIngredients(){ return INGREDIENTS.concat(meta && meta.customFoods ? meta.customFoods : []); }
+function ingredientById(id){ return allIngredients().find(i=>i.id===id); }
+function templateFor(type){
+  const t = meta.profile.templates[type];
+  return Array.isArray(t) ? t : [];
+}
+
+/* ===================== MACRO MATH ===================== */
+function itemMacros(item){
+  const ing = ingredientById(item.ing);
+  if(!ing) return {kcal:0,p:0,c:0,f:0};
+  const factor = item.qty / ing.per;
+  return {kcal:ing.kcal*factor, p:ing.p*factor, c:ing.c*factor, f:ing.f*factor};
+}
+function mealMacros(meal){
+  if(meal.manualMacros) return {kcal:meal.manualMacros.kcal, p:meal.manualMacros.p, c:meal.manualMacros.c, f:meal.manualMacros.f};
+  return meal.items.reduce((acc,item)=>{
+    const m = itemMacros(item);
+    acc.kcal+=m.kcal; acc.p+=m.p; acc.c+=m.c; acc.f+=m.f;
+    return acc;
+  }, {kcal:0,p:0,c:0,f:0});
+}
+function dayTotals(meals){
+  return meals.reduce((acc,meal)=>{
+    const m = mealMacros(meal);
+    acc.kcal+=m.kcal; acc.p+=m.p; acc.c+=m.c; acc.f+=m.f;
+    return acc;
+  }, {kcal:0,p:0,c:0,f:0});
+}
+function checkedTotals(meals){ return dayTotals(meals.filter(m=>m.checked)); }
+function dayHasAnyChecked(meals){ return meals.some(m=>m.checked); }
+
+/* Targets are now DATA, not derived constants.
+   - 'auto': totals of the user's own template (plan-first, e.g. a fixed diet)
+   - 'manual': explicit numbers the user set (log-first, e.g. a new user)
+   Callers must use targetFor(type) rather than any module-level constant. */
+function targetFor(type){
+  const prof = meta.profile;
+  if(prof.targetsMode === 'manual'){
+    const t = prof.targets[type];
+    if(t && typeof t.kcal === 'number') return t;
+    // fall through to derived if manual targets were never set
+  }
+  return dayTotals(templateFor(type));
+}
+
+/* ===================== DATE HELPERS ===================== */
+function dateStr(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function isWeekend(d){ const day=d.getDay(); return day===0||day===6; }
+function dayTypeFor(d){
+  const sched = meta && meta.profile && Array.isArray(meta.profile.dayTypes) ? meta.profile.dayTypes : DEFAULT_DAY_TYPES;
+  return sched[d.getDay()] === 'training' ? 'training' : 'rest';
+}
+function formatDateLabel(d){ return d.toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric'}); }
+function monthKeyFor(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+/* ===================== STORAGE (hybrid: Claude artifact storage, else localStorage) ===================== */
+/* Storage calls can fail transiently. We retry quietly with backoff before surfacing
+   anything, and never use console.error for expected, handled failures. */
+const hasClaudeStorage = (typeof window.storage !== 'undefined');
+const META_KEY = 'dietTracker:meta';
+function monthStorageKey(mk){ return `dietTracker:days:${mk}`; }
+function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+async function saveDataKey(key, value){
+  const json = JSON.stringify(value);
+  if(hasClaudeStorage){
+    for(let attempt=0; attempt<3; attempt++){
+      try{
+        const result = await window.storage.set(key, json, false);
+        if(result) return true;
+      }catch(e){ /* transient — retry below */ }
+      if(attempt < 2) await wait(400 * (attempt+1));
+    }
+    return false;
+  }else{
+    try{ localStorage.setItem(key, json); return true; }
+    catch(e){ return false; }
+  }
+}
+async function loadDataKey(key){
+  if(hasClaudeStorage){
+    for(let attempt=0; attempt<3; attempt++){
+      try{
+        const res = await window.storage.get(key, false);
+        return res ? JSON.parse(res.value) : null;
+      }catch(e){ /* transient — retry below */ }
+      if(attempt < 2) await wait(400 * (attempt+1));
+    }
+    return null;
+  }else{
+    try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
+    catch(e){ return null; }
+  }
+}
+async function listMonthKeys(){
+  if(hasClaudeStorage){
+    try{
+      const res = await window.storage.list('dietTracker:days:', false);
+      return res ? res.keys : [];
+    }catch(e){ return []; }
+  }else{
+    const keys = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith('dietTracker:days:')) keys.push(k);
+    }
+    return keys;
+  }
+}
+
+/* ===================== APP STATE ===================== */
+let monthCache = {};        // monthKey -> { dateKey: dayObject }
+let monthLoadPromises = {}; // monthKey -> in-flight load promise (avoid duplicate fetches)
+let currentDate = new Date();
+let modalState = null;
+let saveStatus = 'idle'; // 'idle' | 'saving' | 'saved' | 'error'
+let saveStatusTimer = null;
+let renderToken = 0;
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function clamp0(n){ return Math.max(0, isFinite(n) ? n : 0); }
+function formatQty(item){
+  const ing = ingredientById(item.ing);
+  if(!ing) return `${item.qty}`;
+  const q = item.qty;
+  if(ing.unit==='g') return `${q}g`;
+  if(ing.unit==='tsp'||ing.unit==='tbsp') return `${q} ${ing.unitLabel}`;
+  const plural = q!==1 ? 's' : '';
+  return `${q} ${ing.unitLabel}${plural}`;
+}
+function ingredientMetaLabel(ing){
+  const perLabel = ing.unit==='g' ? `${ing.per}g` : `1 ${ing.unitLabel}`;
+  return `${Math.round(ing.kcal)} kcal / ${perLabel}`;
+}
+function cloneTemplate(tpl){
+  return tpl.map(m=>({id:m.id, name:m.name, checked:false, items:m.items.map(i=>({...i})), manualMacros:null}));
+}
+
+/* ===================== SCHEMA MIGRATIONS =====================
+   Every persisted structure carries a schemaVersion. Migrations run on load and
+   are pure functions of the stored value, so an old device, a stale backup file,
+   and a fresh install all converge on the current shape. Migrations must be
+   additive and lossless: never drop a field we don't recognise. */
+
+function migrateMeta(raw){
+  // v0 (unversioned, pre-Phase-0): { customFoods: [...] } and nothing else.
+  if(!raw || typeof raw !== 'object'){
+    return {meta: createDefaultMeta(), migrated: true, from: 'none'};
+  }
+  let m = deepClone(raw);
+  const from = typeof m.schemaVersion === 'number' ? m.schemaVersion : 0;
+  let migrated = false;
+
+  if(from < 2){
+    // v0/v1 -> v2: introduce profile. Preserve customFoods exactly.
+    const fresh = createDefaultMeta();
+    fresh.customFoods = Array.isArray(m.customFoods) ? m.customFoods : [];
+    // An existing user was, by definition, using the built-in plan in auto mode.
+    fresh.profile.onboarded = true;
+    m = fresh;
+    migrated = true;
+  }
+
+  // Defensive backfill: a field added later should never leave meta half-shaped.
+  const def = createDefaultMeta();
+  if(!m.profile) { m.profile = def.profile; migrated = true; }
+  if(!Array.isArray(m.customFoods)) { m.customFoods = []; migrated = true; }
+  if(!Array.isArray(m.profile.dayTypes) || m.profile.dayTypes.length !== 7){
+    m.profile.dayTypes = DEFAULT_DAY_TYPES.slice(); migrated = true;
+  }
+  if(!m.profile.templates || typeof m.profile.templates !== 'object'){
+    m.profile.templates = def.profile.templates; migrated = true;
+  }
+  if(!m.profile.targets || typeof m.profile.targets !== 'object'){
+    m.profile.targets = {training:null, rest:null}; migrated = true;
+  }
+  if(m.profile.targetsMode !== 'manual' && m.profile.targetsMode !== 'auto'){
+    m.profile.targetsMode = 'auto'; migrated = true;
+  }
+  if(typeof m.profile.onboarded !== 'boolean'){ m.profile.onboarded = true; migrated = true; }
+
+  m.schemaVersion = CURRENT_SCHEMA;
+  return {meta: m, migrated, from};
+}
+
+/* Month shards were previously a bare { 'YYYY-MM-DD': day } map with no version.
+   They are now { v: N, days: {...} }. In memory we always work with the inner
+   days map, so only the storage boundary knows about the wrapper. */
+function migrateMonthShard(raw){
+  if(!raw || typeof raw !== 'object') return {};
+  if(typeof raw.v === 'number' && raw.days && typeof raw.days === 'object'){
+    return migrateDays(raw.days);
+  }
+  // unversioned legacy shape: the object IS the days map
+  return migrateDays(raw);
+}
+function migrateDays(days){
+  const out = {};
+  for(const key of Object.keys(days)){
+    const day = days[key];
+    if(!day || typeof day !== 'object') continue;
+    out[key] = {
+      type: day.type === 'training' ? 'training' : 'rest',
+      meals: Array.isArray(day.meals) ? day.meals.map(m=>({
+        id: m.id,
+        name: m.name,
+        checked: !!m.checked,
+        items: Array.isArray(m.items) ? m.items : [],
+        manualMacros: m.manualMacros || null,
+      })) : [],
+      body: day.body || null,
+      training: day.training || null,
+    };
+  }
+  return out;
+}
+function wrapMonthShard(daysMap){
+  return {v: CURRENT_SCHEMA, days: daysMap};
+}
+
+/* ---- Month-sharded day storage ---- */
+async function ensureMonthLoaded(mk){
+  if(monthCache[mk]) return monthCache[mk];
+  if(monthLoadPromises[mk]) return monthLoadPromises[mk];
+  monthLoadPromises[mk] = (async ()=>{
+    const data = await loadDataKey(monthStorageKey(mk));
+    monthCache[mk] = migrateMonthShard(data);
+    delete monthLoadPromises[mk];
+    return monthCache[mk];
+  })();
+  return monthLoadPromises[mk];
+}
+async function persistToKey(key, value){
+  saveStatus = 'saving'; updateSaveIndicator();
+  const ok = await saveDataKey(key, value);
+  saveStatus = ok ? 'saved' : 'error'; updateSaveIndicator();
+  if(ok){
+    clearTimeout(saveStatusTimer);
+    saveStatusTimer = setTimeout(()=>{ if(saveStatus==='saved'){ saveStatus='idle'; updateSaveIndicator(); } }, 1500);
+  }
+  return ok;
+}
+async function persistMonth(mk){ return persistToKey(monthStorageKey(mk), wrapMonthShard(monthCache[mk])); }
+async function persistMeta(){ return persistToKey(META_KEY, meta); }
+
+function updateSaveIndicator(){
+  const el = document.getElementById('saveIndicator');
+  if(!el) return;
+  if(saveStatus==='saving'){ el.className='save-indicator visible'; el.innerHTML='Saving&hellip;'; }
+  else if(saveStatus==='saved'){ el.className='save-indicator visible'; el.innerHTML='Saved'; }
+  else if(saveStatus==='error'){
+    el.className='save-indicator visible error';
+    el.innerHTML='Couldn&rsquo;t save that change. <button type="button" id="retrySaveBtn">Retry</button>';
+    const btn = document.getElementById('retrySaveBtn');
+    if(btn) btn.addEventListener('click', ()=>{ persistMonth(monthKeyFor(currentDate)); });
+  }else{ el.className='save-indicator'; el.innerHTML=''; }
+}
+
+async function getOrInitDay(key, date){
+  const mk = monthKeyFor(date);
+  const month = await ensureMonthLoaded(mk);
+  if(!month[key]){
+    const type = dayTypeFor(date);
+    const tpl = templateFor(type);
+    month[key] = {type, meals: cloneTemplate(tpl)};
+    persistMonth(mk);
+  }
+  return month[key];
+}
+async function peekDay(date){
+  const mk = monthKeyFor(date);
+  const month = await ensureMonthLoaded(mk);
+  const key = dateStr(date);
+  if(month[key]) return month[key];
+  const type = dayTypeFor(date);
+  const tpl = templateFor(type);
+  return {type, meals: cloneTemplate(tpl)};
+}
+function resetDay(key, date){
+  const mk = monthKeyFor(date);
+  const type = dayTypeFor(date);
+  const tpl = templateFor(type);
+  monthCache[mk][key] = {type, meals:cloneTemplate(tpl)};
+  persistMonth(mk); render();
+}
+function vibrate(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
+function toggleChecked(key, mealId){
+  const mk = monthKeyFor(currentDate);
+  const day = monthCache[mk][key];
+  const meal = day.meals.find(m=>m.id===mealId);
+  if(meal){ meal.checked = !meal.checked; vibrate(12); persistMonth(mk); render(); }
+}
+function deleteMeal(key, mealId){
+  const mk = monthKeyFor(currentDate);
+  const day = monthCache[mk][key];
+  day.meals = day.meals.filter(m=>m.id!==mealId);
+  persistMonth(mk); render();
+}
+function saveMealEntry(key, mealId, name, items, manualMacros){
+  const mk = monthKeyFor(currentDate);
+  const day = monthCache[mk][key];
+  if(mealId){
+    const meal = day.meals.find(m=>m.id===mealId);
+    if(meal){ meal.name=name; meal.items=items; meal.manualMacros=manualMacros||null; }
+  }else{
+    day.meals.push({id:'meal-'+Date.now(), name, items, manualMacros: manualMacros||null, checked:false});
+  }
+  persistMonth(mk); render();
+}
+
+/* ---- Weekly (7-day) rolling average, always anchored to the real "today" ---- */
+async function computeWeeklyAverage(){
+  const anchor = new Date();
+  const days = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(anchor); d.setDate(d.getDate()-i);
+    days.push(await peekDay(d));
+  }
+  const totals = {kcal:0,p:0,c:0,f:0};
+  const targetTotals = {kcal:0,p:0,c:0,f:0};
+  let loggedCount = 0;
+  for(const day of days){
+    const t = checkedTotals(day.meals);
+    totals.kcal+=t.kcal; totals.p+=t.p; totals.c+=t.c; totals.f+=t.f;
+    const tgt = targetFor(day.type);
+    targetTotals.kcal+=tgt.kcal; targetTotals.p+=tgt.p; targetTotals.c+=tgt.c; targetTotals.f+=tgt.f;
+    if(dayHasAnyChecked(day.meals)) loggedCount++;
+  }
+  return {
+    avgEaten: {kcal:totals.kcal/7, p:totals.p/7, c:totals.c/7, f:totals.f/7},
+    avgTarget: {kcal:targetTotals.kcal/7, p:targetTotals.p/7, c:targetTotals.c/7, f:targetTotals.f/7},
+    loggedCount
+  };
+}
+
+/* ---- AI macro lookup (calls Claude directly from the artifact; no API key needed) ---- */
+async function aiLookupMacros(description, mode){
+  const systemPrompt = mode === 'per100g'
+    ? "You are a nutrition estimation assistant inside a diet-tracking app. Given a short food name, estimate its nutrition PER 100 GRAMS of the food (not per serving). Respond with ONLY a raw JSON object, no markdown fences, no prose, with exactly these keys: kcal, p, c, f (all numbers, per 100g), serving_grams (typical single-serving weight in grams, your best estimate, a number), notes (one short sentence on assumptions made). Base your estimate on standard nutrition data for common recipes and ingredients."
+    : "You are a nutrition estimation assistant inside a diet-tracking app. Given a description of a meal someone ate (which may include a quantity, e.g. '250g' or 'large'), estimate the TOTAL nutrition for that entire described portion, not per 100g. Respond with ONLY a raw JSON object, no markdown fences, no prose, with exactly these keys: kcal, p, c, f (numbers, totals for the whole described meal), notes (one short sentence on assumptions made, e.g. serving size assumed if unspecified). Base your estimate on standard nutrition data for common dishes and restaurant meals.";
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:500, system:systemPrompt, messages:[{role:'user', content:description}] })
+    });
+    if(!resp.ok) return {ok:false, error:`Lookup service returned ${resp.status}`};
+    const data = await resp.json();
+    const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    const cleaned = text.replace(/^```json\s*|^```\s*|```\s*$/gim,'').trim();
+    const parsed = JSON.parse(cleaned);
+    if(typeof parsed.kcal !== 'number') return {ok:false, error:'Unexpected response format'};
+    return {ok:true, data:parsed};
+  }catch(e){
+    return {ok:false, error:(e && e.message) || 'Lookup failed'};
+  }
+}
+
+/* ---- Backup / export ---- */
+async function exportAllData(){
+  const monthKeys = await listMonthKeys();
+  const months = {};
+  for(const k of monthKeys){
+    const mk = k.replace('dietTracker:days:', '');
+    // Normalize to the unwrapped days map regardless of whether it came from the
+    // in-memory cache (already unwrapped) or storage (wrapped).
+    months[mk] = monthCache[mk] || migrateMonthShard(await loadDataKey(k));
+  }
+  return {schemaVersion: CURRENT_SCHEMA, exportedAt: new Date().toISOString(), meta, months};
+}
+async function downloadBackup(){
+  const data = await exportAllData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `diet-tracker-backup-${dateStr(new Date())}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+/* ---- Import (the cross-device bridge, since window.storage isn't guaranteed
+   to follow you between separate artifact instances/devices) ---- */
+let importPendingData = null; // parsed, validated backup awaiting merge/replace choice
+
+async function parseBackupFile(file){
+  let text;
+  try{ text = await file.text(); }catch(e){ return {ok:false, error:'Could not read that file.'}; }
+  let data;
+  try{ data = JSON.parse(text); }catch(e){ return {ok:false, error:"That file isn't valid JSON."}; }
+  if(!data || typeof data !== 'object' || typeof data.months !== 'object' || !data.months){
+    return {ok:false, error:"That doesn't look like a Recomp Tracker backup file."};
+  }
+  if(typeof data.schemaVersion === 'number' && data.schemaVersion > CURRENT_SCHEMA){
+    return {ok:false, error:'That backup was made by a newer version of the app. Update the app first, then import.'};
+  }
+  // Old backups predate the profile and the wrapped month shape. Migrating on
+  // import means a backup taken at any point in the app's history stays usable.
+  data.meta = migrateMeta(data.meta).meta;
+  const migratedMonths = {};
+  for(const mk of Object.keys(data.months)){
+    migratedMonths[mk] = migrateMonthShard(data.months[mk]);
+  }
+  data.months = migratedMonths;
+  return {ok:true, data};
+}
+function isDayMeaningfullyEmpty(day){
+  if(!day) return true;
+  const hasCheckedMeal = day.meals.some(m=>m.checked);
+  const hasCustomMeal = day.meals.some(m=>m.id.startsWith('meal-'));
+  const hasBody = day.body && (day.body.weight!=null || day.body.bf!=null || day.body.smm!=null);
+  const hasTraining = day.training && (day.training.liftingDone || day.training.cardioDone);
+  return !hasCheckedMeal && !hasCustomMeal && !hasBody && !hasTraining;
+}
+async function applyImport(data, mode){
+  if(mode === 'replace'){
+    monthCache = {};
+    for(const mk of Object.keys(data.months)){
+      monthCache[mk] = data.months[mk] || {};
+      await persistMonth(mk);
+    }
+    meta = data.meta;
+    await persistMeta();
+  }else{
+    for(const mk of Object.keys(data.months)){
+      await ensureMonthLoaded(mk);
+      const incomingDays = data.months[mk] || {};
+      let changed = false;
+      for(const dayKey of Object.keys(incomingDays)){
+        const localDay = monthCache[mk][dayKey];
+        if(isDayMeaningfullyEmpty(localDay)){
+          monthCache[mk][dayKey] = incomingDays[dayKey];
+          changed = true;
+        }
+      }
+      if(changed) await persistMonth(mk);
+    }
+    const existingIds = new Set(meta.customFoods.map(f=>f.id));
+    let addedAny = false;
+    for(const food of data.meta.customFoods){
+      if(!existingIds.has(food.id)){ meta.customFoods.push(food); addedAny = true; }
+    }
+    if(addedAny) await persistMeta();
+  }
+  render();
+}
+function renderImportModal(){
+  if(!importPendingData) return '';
+  const monthCount = Object.keys(importPendingData.months||{}).length;
+  const foodCount = (importPendingData.meta.customFoods||[]).length;
+  return `
+    <div class="modal-backdrop" id="importModalBackdrop">
+      <div class="modal">
+        <div class="modal-head"><h3>Import backup</h3><button type="button" class="icon-btn" id="importCloseBtn">&times;</button></div>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.5;">This file has ${monthCount} month${monthCount===1?'':'s'} of data and ${foodCount} custom food${foodCount===1?'':'s'}. Choose how to bring it in:</p>
+        <div class="modal-actions" style="flex-direction:column;gap:8px;">
+          <button type="button" class="btn-primary" id="importMergeBtn">Merge &mdash; only fill in days I don&rsquo;t already have here</button>
+          <button type="button" class="btn-ghost" id="importReplaceBtn" style="border-color:var(--training);color:var(--training);">Replace all data here with this backup</button>
+          <button type="button" class="btn-ghost" id="importCancelBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+function attachImportModalEvents(){
+  const backdrop = document.getElementById('importModalBackdrop');
+  if(!backdrop) return;
+  const close = ()=>{ importPendingData = null; render(); };
+  document.getElementById('importCloseBtn').addEventListener('click', close);
+  document.getElementById('importCancelBtn').addEventListener('click', close);
+  backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) close(); });
+  document.getElementById('importMergeBtn').addEventListener('click', async ()=>{
+    const data = importPendingData; importPendingData = null;
+    await applyImport(data, 'merge');
+  });
+  document.getElementById('importReplaceBtn').addEventListener('click', async ()=>{
+    if(!confirm('This replaces every day and custom food currently stored here with the backup. Continue?')) return;
+    const data = importPendingData; importPendingData = null;
+    await applyImport(data, 'replace');
+  });
+}
+
+/* ===================== RENDER: HEADER ===================== */
+function renderHeader(date, type){
+  const label = formatDateLabel(date);
+  const pillClass = type==='training' ? 'pill-training' : 'pill-rest';
+  const pillText = type==='training' ? 'Training Day' : 'Rest Day';
+  const iso = dateStr(date);
+  const isToday = iso === dateStr(new Date());
+  return `
+    <div class="brand-strip">Recomp &middot; Daily Macros</div>
+    <header class="app-header">
+      <div class="date-nav">
+        <button class="nav-btn" data-action="prev-day" aria-label="Previous day">&lsaquo;</button>
+        <div class="date-display">
+          <div class="date-label">${label}</div>
+          <input type="date" id="datePicker" class="date-picker" value="${iso}" aria-label="Jump to date">
+        </div>
+        <button class="nav-btn" data-action="next-day" aria-label="Next day">&rsaquo;</button>
+      </div>
+      <div class="header-row2">
+        <span class="pill ${pillClass}">${pillText}</span>
+        ${!isToday ? `<button class="link-btn" data-action="go-today">Today</button>` : ''}
+        <button class="link-btn" data-action="reset-day">Reset to default</button>
+        <button class="link-btn" data-action="backup">Backup</button>
+        <button class="link-btn" data-action="import">Import</button>
+        <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+      </div>
+    </header>
+  `;
+}
+
+/* ===================== RENDER: MACRO PANEL ===================== */
+function renderMacroRow(r){
+  const pctEaten = Math.min(100, r.target>0 ? (r.eaten/r.target)*100 : 0);
+  const pctPlan = Math.min(100, r.target>0 ? (r.plan/r.target)*100 : 0);
+  const over = r.eaten > r.target;
+  const dec = r.key==='kcal' ? 0 : 1;
+  return `
+    <div class="macro-row">
+      <div class="macro-label">${r.label}</div>
+      <div class="macro-bar-track">
+        <div class="macro-bar-fill" style="width:${pctEaten}%;background:${r.color};"></div>
+        <div class="macro-bar-marker" style="left:${pctPlan}%;"></div>
+      </div>
+      <div class="macro-value ${over?'over':''}">${r.eaten.toFixed(dec)}${r.unit} / ${r.target.toFixed(dec)}${r.unit}</div>
+    </div>
+  `;
+}
+function renderMacroPanel(eaten, planTotal, target, type){
+  const rows = [
+    {key:'kcal', label:'Calories', unit:'', color:'var(--kcal)', eaten:eaten.kcal, plan:planTotal.kcal, target:target.kcal},
+    {key:'p', label:'Protein', unit:'g', color:'var(--protein)', eaten:eaten.p, plan:planTotal.p, target:target.p},
+    {key:'c', label:'Carbs', unit:'g', color:'var(--carbs)', eaten:eaten.c, plan:planTotal.c, target:target.c},
+    {key:'f', label:'Fat', unit:'g', color:'var(--fat)', eaten:eaten.f, plan:planTotal.f, target:target.f},
+  ];
+  return `
+    <section class="macro-panel ${type}">
+      ${rows.map(renderMacroRow).join('')}
+      <div class="plan-footnote">Today&rsquo;s full plan: ${planTotal.kcal.toFixed(0)} kcal &middot; ${planTotal.p.toFixed(0)}P / ${planTotal.c.toFixed(0)}C / ${planTotal.f.toFixed(0)}F</div>
+    </section>
+  `;
+}
+function renderWeeklyPanel(weekly){
+  const rows = [
+    {label:'Calories', unit:'', eaten:weekly.avgEaten.kcal, target:weekly.avgTarget.kcal},
+    {label:'Protein', unit:'g', eaten:weekly.avgEaten.p, target:weekly.avgTarget.p},
+    {label:'Carbs', unit:'g', eaten:weekly.avgEaten.c, target:weekly.avgTarget.c},
+    {label:'Fat', unit:'g', eaten:weekly.avgEaten.f, target:weekly.avgTarget.f},
+  ];
+  return `
+    <section class="weekly-panel">
+      <div class="weekly-head"><span>Last 7 days &middot; avg/day</span><span class="weekly-logged">${weekly.loggedCount}/7 logged</span></div>
+      <div class="weekly-rows">
+        ${rows.map(r=>`
+          <div class="weekly-row">
+            <span>${r.label}</span>
+            <span class="weekly-val">${r.eaten.toFixed(r.unit?1:0)}${r.unit}</span>
+            <span class="weekly-target">/ ${r.target.toFixed(r.unit?1:0)}${r.unit}</span>
+          </div>`).join('')}
+      </div>
+    </section>
+  `;
+}
+
+/* ===================== RENDER: MEAL LIST ===================== */
+function renderMealCard(meal){
+  const m = mealMacros(meal);
+  const itemsHtml = meal.manualMacros
+    ? `<li>Quick-logged &mdash; ${escapeHtml(meal.manualMacros.notes||'no ingredient breakdown')}</li>`
+    : meal.items.map(i=>{
+        const ing = ingredientById(i.ing);
+        return ing ? `<li>${formatQty(i)} ${escapeHtml(ing.name)}</li>` : '';
+      }).join('');
+  return `
+    <div class="meal-card ${meal.checked?'checked':''}">
+      <button class="check-toggle" data-action="toggle-check" data-id="${meal.id}" aria-pressed="${meal.checked}" aria-label="Mark ${escapeHtml(meal.name)} as eaten">
+        <span class="check-box"></span>
+      </button>
+      <div class="meal-info">
+        <div class="meal-name">${escapeHtml(meal.name)}</div>
+        <div class="meal-macros">${m.kcal.toFixed(0)} kcal &middot; ${m.p.toFixed(0)}P / ${m.c.toFixed(0)}C / ${m.f.toFixed(0)}F</div>
+        <details class="meal-items"><summary>Details</summary><ul>${itemsHtml}</ul></details>
+      </div>
+      <div class="meal-actions">
+        <button class="icon-btn" data-action="edit-meal" data-id="${meal.id}" aria-label="Edit meal">&#9998;</button>
+        <button class="icon-btn" data-action="delete-meal" data-id="${meal.id}" aria-label="Delete meal">&#128465;</button>
+      </div>
+    </div>
+  `;
+}
+function renderMealList(meals){
+  if(meals.length===0){
+    return `<section class="meal-list">
+      <div class="empty-state">No meals here yet. Add one below to get started.</div>
+      <button class="add-meal-btn" data-action="open-add-meal">+ Add a meal</button>
+    </section>`;
+  }
+  return `<section class="meal-list">
+    ${meals.map(renderMealCard).join('')}
+    <button class="add-meal-btn" data-action="open-add-meal">+ Add a meal</button>
+  </section>`;
+}
+
+/* ===================== RENDER: MODAL ===================== */
+function defaultNewFood(){
+  return {name:'', unit:'g', unitLabel:'', servingGrams:'', kcal:'', p:'', c:'', f:'', lookupDesc:'', lookupStatus:'idle', lookupNote:'', lookupError:'', conversionWarning:''};
+}
+function renderIngredientResults(){
+  const q = modalState.search.trim().toLowerCase();
+  const filtered = q ? allIngredients().filter(i=>i.name.toLowerCase().includes(q)) : allIngredients();
+  const listHtml = filtered.length===0
+    ? `<div class="empty-hint">No foods match &ldquo;${escapeHtml(modalState.search)}&rdquo;.</div>`
+    : filtered.map(i=>`
+        <div class="ing-row">
+          <span class="ing-name">${escapeHtml(i.name)}${i.source==='user'?'<span class="ing-source-tag">mine</span>':''}</span>
+          <span class="ing-meta">${ingredientMetaLabel(i)}</span>
+          <button type="button" data-action="add-ing" data-id="${i.id}">Add</button>
+        </div>
+      `).join('');
+  return listHtml;
+}
+function renderNewFoodForm(){
+  const nf = modalState.newFood;
+  const showUnitLabelField = nf.unit !== 'g';
+  return `
+    <div class="new-food-form" id="newFoodForm">
+      <label class="field-label" for="newFoodName">New food name</label>
+      <input id="newFoodName" class="text-input" value="${escapeHtml(nf.name)}" placeholder="e.g. Roti, Paneer Sabzi">
+
+      <div class="lookup-row">
+        <input id="newFoodLookupDesc" class="text-input" placeholder="Describe it for AI lookup (optional)" value="${escapeHtml(nf.lookupDesc)}">
+        <button type="button" class="lookup-btn" id="newFoodLookupBtn" ${nf.lookupStatus==='loading'?'disabled':''}>${nf.lookupStatus==='loading'?'Looking up…':'Look up with AI'}</button>
+      </div>
+      <div class="lookup-status ${nf.lookupStatus==='error'?'error':''}">${nf.lookupStatus==='error' ? escapeHtml(nf.lookupError) : escapeHtml(nf.lookupNote)}</div>
+
+      <label class="field-label" for="newFoodUnit">Serving type</label>
+      <select id="newFoodUnit" class="text-input">
+        <option value="g" ${nf.unit==='g'?'selected':''}>Per 100 grams</option>
+        <option value="piece" ${nf.unit==='piece'?'selected':''}>Per piece / serving</option>
+      </select>
+      <label class="field-label" for="newFoodServingGrams">Typical serving size (grams)</label>
+      <input id="newFoodServingGrams" type="number" step="any" class="text-input" value="${escapeHtml(nf.servingGrams)}" placeholder="e.g. 40">
+      <div class="hint-text">Used to convert between &ldquo;per 100g&rdquo; and &ldquo;per piece&rdquo; when you switch serving type below — e.g. 1 roti &asymp; 40g.</div>
+      ${showUnitLabelField ? `
+        <label class="field-label" for="newFoodUnitLabel">Unit name</label>
+        <input id="newFoodUnitLabel" class="text-input" value="${escapeHtml(nf.unitLabel)}" placeholder="e.g. roti, samosa, slice">
+      ` : ''}
+
+      <div class="macro-input-grid">
+        <div><label>Calories</label><input id="newFoodKcal" type="number" step="any" class="text-input" value="${escapeHtml(nf.kcal)}"></div>
+        <div><label>Protein (g)</label><input id="newFoodP" type="number" step="any" class="text-input" value="${escapeHtml(nf.p)}"></div>
+        <div><label>Carbs (g)</label><input id="newFoodC" type="number" step="any" class="text-input" value="${escapeHtml(nf.c)}"></div>
+        <div><label>Fat (g)</label><input id="newFoodF" type="number" step="any" class="text-input" value="${escapeHtml(nf.f)}"></div>
+      </div>
+      ${nf.conversionWarning ? `<div class="lookup-status error">${escapeHtml(nf.conversionWarning)}</div>` : ''}
+      <div class="hint-text">${nf.unit==='g' ? 'Values above are per 100g.' : 'Values above are per single unit (e.g. per 1 roti).'}</div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-ghost" id="cancelNewFoodBtn">Cancel</button>
+        <button type="button" class="btn-primary" id="saveNewFoodBtn">Save food</button>
+      </div>
+    </div>
+  `;
+}
+function renderSelectedItems(){
+  if(modalState.items.length===0) return `<div class="empty-hint">No ingredients added yet.</div>`;
+  return modalState.items.map((item, idx)=>{
+    const ing = ingredientById(item.ing);
+    if(!ing) return '';
+    const m = itemMacros(item);
+    return `
+      <div class="sel-row">
+        <span class="sel-name" title="${escapeHtml(ing.name)}">${escapeHtml(ing.name)}</span>
+        <input type="number" step="any" min="0" class="qty-input" data-idx="${idx}" value="${item.qty}" aria-label="Quantity of ${escapeHtml(ing.name)}">
+        <span class="sel-unit">${ing.unitLabel}</span>
+        <span class="sel-sub" id="item-sub-${idx}">${m.kcal.toFixed(0)} kcal</span>
+        <button type="button" class="remove-btn" data-action="remove-item" data-idx="${idx}" aria-label="Remove ${escapeHtml(ing.name)}">&times;</button>
+      </div>
+    `;
+  }).join('');
+}
+function computeModalTotal(){
+  return modalState.items.reduce((acc,item)=>{
+    const m = itemMacros(item);
+    acc.kcal+=m.kcal; acc.p+=m.p; acc.c+=m.c; acc.f+=m.f;
+    return acc;
+  }, {kcal:0,p:0,c:0,f:0});
+}
+function renderModalTotalText(){
+  const t = computeModalTotal();
+  return `${t.kcal.toFixed(0)} kcal &middot; P ${t.p.toFixed(1)}g &middot; C ${t.c.toFixed(1)}g &middot; F ${t.f.toFixed(1)}g`;
+}
+function renderQuickLogTab(){
+  const mm = modalState.manualMacros || {kcal:'',p:'',c:'',f:''};
+  const status = modalState.quickLookupStatus;
+  return `
+    <label class="field-label" for="quickDesc">What did you eat?</label>
+    <div class="lookup-row">
+      <input id="quickDesc" class="text-input" placeholder="e.g. Chipotle chicken bowl, large" value="${escapeHtml(modalState.name)}">
+      <button type="button" class="lookup-btn" id="quickLookupBtn" ${status==='loading'?'disabled':''}>${status==='loading'?'Looking up…':'Look up with AI'}</button>
+    </div>
+    <div class="lookup-status ${status==='error'?'error':''}">${status==='error' ? escapeHtml(modalState.quickLookupError) : (modalState.quickLookupNote||'')}</div>
+    <div class="macro-input-grid">
+      <div><label>Calories</label><input id="quickKcal" type="number" step="any" class="text-input" value="${mm.kcal}"></div>
+      <div><label>Protein (g)</label><input id="quickP" type="number" step="any" class="text-input" value="${mm.p}"></div>
+      <div><label>Carbs (g)</label><input id="quickC" type="number" step="any" class="text-input" value="${mm.c}"></div>
+      <div><label>Fat (g)</label><input id="quickF" type="number" step="any" class="text-input" value="${mm.f}"></div>
+    </div>
+    <div class="hint-text">Use AI lookup for a quick estimate, or just type the numbers yourself — either way, review before saving.</div>
+  `;
+}
+function renderIngredientsTab(){
+  return `
+    <label class="field-label" for="ingredientSearch">Add ingredients</label>
+    <input id="ingredientSearch" class="text-input" placeholder="Search ingredients&hellip;" value="${escapeHtml(modalState.search)}">
+    <div id="ingredientResults" class="ing-results">${renderIngredientResults()}</div>
+    <button type="button" class="new-food-toggle" id="toggleNewFoodBtn">${modalState.newFoodMode ? '&minus; Cancel new food' : '+ Can&rsquo;t find it? Add a new food'}</button>
+    ${modalState.newFoodMode ? renderNewFoodForm() : ''}
+
+    <div class="selected-head">In this meal</div>
+    <div id="selectedItems" class="selected-list">${renderSelectedItems()}</div>
+    <div class="modal-total" id="modalTotal">${renderModalTotalText()}</div>
+  `;
+}
+function renderModalHTML(){
+  if(!modalState) return '';
+  return `
+    <div class="modal-backdrop" id="modalBackdrop">
+      <div class="modal" role="dialog" aria-modal="true" aria-label="${modalState.mode==='add'?'Add a meal':'Edit meal'}">
+        <div class="modal-head">
+          <h3>${modalState.mode==='add' ? 'Add a meal' : 'Edit meal'}</h3>
+          <button type="button" class="icon-btn" id="modalCloseBtn" aria-label="Close">&times;</button>
+        </div>
+
+        <div class="tab-row">
+          <button type="button" class="tab-btn ${modalState.tab==='ingredients'?'active':''}" data-action="switch-tab" data-tab="ingredients">Build from ingredients</button>
+          <button type="button" class="tab-btn ${modalState.tab==='quicklog'?'active':''}" data-action="switch-tab" data-tab="quicklog">Quick log</button>
+        </div>
+
+        <label class="field-label" for="mealNameInput">Meal name</label>
+        <input id="mealNameInput" class="text-input" value="${escapeHtml(modalState.name)}" placeholder="e.g. Saturday brunch">
+
+        ${modalState.tab==='ingredients' ? renderIngredientsTab() : renderQuickLogTab()}
+
+        <div class="save-warning" id="saveWarning">Add at least one ingredient, or enter/look up macros, before saving.</div>
+        <div class="modal-actions">
+          <button type="button" class="btn-ghost" id="cancelMealBtn">Cancel</button>
+          <button type="button" class="btn-primary" id="saveMealBtn">Save meal</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ===================== MODAL EVENT WIRING ===================== */
+function attachSelectedItemsEvents(){
+  const container = document.getElementById('selectedItems');
+  if(!container) return;
+  container.querySelectorAll('.qty-input').forEach(input=>{
+    input.addEventListener('input', (e)=>{
+      const idx = parseInt(e.target.dataset.idx, 10);
+      modalState.items[idx].qty = clamp0(parseFloat(e.target.value));
+      const m = itemMacros(modalState.items[idx]);
+      const subEl = document.getElementById(`item-sub-${idx}`);
+      if(subEl) subEl.textContent = `${m.kcal.toFixed(0)} kcal`;
+      const totalEl = document.getElementById('modalTotal');
+      if(totalEl) totalEl.innerHTML = renderModalTotalText();
+    });
+  });
+  container.querySelectorAll('[data-action="remove-item"]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const idx = parseInt(e.currentTarget.dataset.idx, 10);
+      modalState.items.splice(idx, 1);
+      document.getElementById('selectedItems').innerHTML = renderSelectedItems();
+      document.getElementById('modalTotal').innerHTML = renderModalTotalText();
+      attachSelectedItemsEvents();
+    });
+  });
+}
+function attachNewFoodEvents(){
+  const form = document.getElementById('newFoodForm');
+  if(!form) return;
+  document.getElementById('newFoodName').addEventListener('input', e=>{ modalState.newFood.name = e.target.value; });
+  document.getElementById('newFoodLookupDesc').addEventListener('input', e=>{ modalState.newFood.lookupDesc = e.target.value; });
+  document.getElementById('newFoodServingGrams').addEventListener('input', e=>{ modalState.newFood.servingGrams = e.target.value; });
+  document.getElementById('newFoodUnit').addEventListener('change', e=>{
+    const newUnit = e.target.value;
+    const oldUnit = modalState.newFood.unit;
+    if(newUnit !== oldUnit){
+      const sg = parseFloat(modalState.newFood.servingGrams);
+      const hasValidServing = isFinite(sg) && sg > 0;
+      if(hasValidServing){
+        const factor = (oldUnit==='g' && newUnit==='piece') ? (sg/100) : (100/sg);
+        ['kcal','p','c','f'].forEach(k=>{
+          const val = parseFloat(modalState.newFood[k]);
+          if(isFinite(val)) modalState.newFood[k] = String(Math.round(val*factor*100)/100);
+        });
+        modalState.newFood.conversionWarning = '';
+      }else{
+        modalState.newFood.conversionWarning = 'Enter a typical serving size (grams) above to auto-convert — until then these numbers still reflect the old serving type, so double-check them.';
+      }
+    }
+    modalState.newFood.unit = newUnit;
+    render();
+  });
+  const unitLabelInput = document.getElementById('newFoodUnitLabel');
+  if(unitLabelInput) unitLabelInput.addEventListener('input', e=>{ modalState.newFood.unitLabel = e.target.value; });
+  document.getElementById('newFoodKcal').addEventListener('input', e=>{ modalState.newFood.kcal = e.target.value; });
+  document.getElementById('newFoodP').addEventListener('input', e=>{ modalState.newFood.p = e.target.value; });
+  document.getElementById('newFoodC').addEventListener('input', e=>{ modalState.newFood.c = e.target.value; });
+  document.getElementById('newFoodF').addEventListener('input', e=>{ modalState.newFood.f = e.target.value; });
+  document.getElementById('cancelNewFoodBtn').addEventListener('click', ()=>{ modalState.newFoodMode = false; render(); });
+  document.getElementById('newFoodLookupBtn').addEventListener('click', async ()=>{
+    const desc = modalState.newFood.lookupDesc.trim() || modalState.newFood.name.trim();
+    if(!desc){ modalState.newFood.lookupStatus='error'; modalState.newFood.lookupError='Type a name or description first.'; render(); return; }
+    modalState.newFood.lookupStatus = 'loading'; render();
+    const result = await aiLookupMacros(desc, 'per100g');
+    if(!modalState || !modalState.newFood) return; // modal may have closed while awaiting
+    if(result.ok){
+      modalState.newFood.kcal = String(result.data.kcal);
+      modalState.newFood.p = String(result.data.p);
+      modalState.newFood.c = String(result.data.c);
+      modalState.newFood.f = String(result.data.f);
+      modalState.newFood.unit = 'g';
+      modalState.newFood.servingGrams = result.data.serving_grams ? String(result.data.serving_grams) : modalState.newFood.servingGrams;
+      modalState.newFood.conversionWarning = '';
+      modalState.newFood.lookupStatus = 'idle';
+      const servingNote = result.data.serving_grams ? `Typical serving: ~${result.data.serving_grams}g. ` : '';
+      modalState.newFood.lookupNote = servingNote + (result.data.notes||'');
+      if(!modalState.newFood.name) modalState.newFood.name = desc;
+    }else{
+      modalState.newFood.lookupStatus = 'error';
+      modalState.newFood.lookupError = `Couldn't get an estimate (${result.error}). Enter macros manually below.`;
+    }
+    render();
+  });
+  document.getElementById('saveNewFoodBtn').addEventListener('click', ()=>{
+    const nf = modalState.newFood;
+    const name = nf.name.trim();
+    if(!name){ nf.lookupStatus='error'; nf.lookupError='Give the food a name first.'; render(); return; }
+    const unit = nf.unit;
+    const per = unit==='g' ? 100 : 1;
+    const unitLabel = unit==='g' ? 'g' : (nf.unitLabel.trim() || 'serving');
+    const newFood = {
+      id:'custom-'+Date.now(), name, unit, per, unitLabel,
+      kcal:clamp0(parseFloat(nf.kcal)), p:clamp0(parseFloat(nf.p)), c:clamp0(parseFloat(nf.c)), f:clamp0(parseFloat(nf.f)),
+      source:'user'
+    };
+    meta.customFoods.push(newFood);
+    persistMeta();
+    modalState.items.push({ing:newFood.id, qty: unit==='g' ? 100 : 1});
+    modalState.newFoodMode = false;
+    modalState.newFood = defaultNewFood();
+    modalState.search = '';
+    render();
+  });
+}
+function attachQuickLogEvents(){
+  const descInput = document.getElementById('quickDesc');
+  if(!descInput) return;
+  descInput.addEventListener('input', e=>{ modalState.name = e.target.value; });
+  ['quickKcal','quickP','quickC','quickF'].forEach((id, i)=>{
+    const key = ['kcal','p','c','f'][i];
+    document.getElementById(id).addEventListener('input', e=>{
+      if(!modalState.manualMacros) modalState.manualMacros = {kcal:0,p:0,c:0,f:0};
+      modalState.manualMacros[key] = clamp0(parseFloat(e.target.value));
+    });
+  });
+  document.getElementById('quickLookupBtn').addEventListener('click', async ()=>{
+    const desc = modalState.name.trim();
+    if(!desc){ modalState.quickLookupStatus='error'; modalState.quickLookupError='Describe what you ate first.'; render(); return; }
+    modalState.quickLookupStatus = 'loading'; render();
+    const result = await aiLookupMacros(desc, 'total');
+    if(!modalState) return;
+    if(result.ok){
+      modalState.manualMacros = {kcal:result.data.kcal, p:result.data.p, c:result.data.c, f:result.data.f};
+      modalState.quickLookupStatus = 'idle';
+      modalState.quickLookupNote = result.data.notes || '';
+    }else{
+      modalState.quickLookupStatus = 'error';
+      modalState.quickLookupError = `Couldn't get an estimate (${result.error}). Enter macros manually below.`;
+    }
+    render();
+  });
+}
+function attachModalEvents(){
+  const backdrop = document.getElementById('modalBackdrop');
+  if(!backdrop) return;
+
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  document.getElementById('cancelMealBtn').addEventListener('click', closeModal);
+  backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) closeModal(); });
+
+  document.getElementById('mealNameInput').addEventListener('input', (e)=>{ modalState.name = e.target.value; });
+
+  backdrop.querySelectorAll('[data-action="switch-tab"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ modalState.tab = btn.dataset.tab; render(); });
+  });
+
+  if(modalState.tab==='ingredients'){
+    document.getElementById('ingredientSearch').addEventListener('input', (e)=>{
+      modalState.search = e.target.value;
+      document.getElementById('ingredientResults').innerHTML = renderIngredientResults();
+    });
+    document.getElementById('ingredientResults').addEventListener('click', (e)=>{
+      const btn = e.target.closest('[data-action="add-ing"]');
+      if(!btn) return;
+      const ing = ingredientById(btn.dataset.id);
+      if(!ing) return;
+      const defaultQty = ing.unit==='g' ? 100 : 1;
+      modalState.items.push({ing:ing.id, qty:defaultQty});
+      document.getElementById('selectedItems').innerHTML = renderSelectedItems();
+      document.getElementById('modalTotal').innerHTML = renderModalTotalText();
+      attachSelectedItemsEvents();
+    });
+    document.getElementById('toggleNewFoodBtn').addEventListener('click', ()=>{
+      modalState.newFoodMode = !modalState.newFoodMode;
+      render();
+    });
+    attachSelectedItemsEvents();
+    if(modalState.newFoodMode) attachNewFoodEvents();
+  }else{
+    attachQuickLogEvents();
+  }
+
+  document.getElementById('saveMealBtn').addEventListener('click', ()=>{
+    const key = dateStr(currentDate);
+    const name = modalState.name.trim() || (modalState.tab==='quicklog' ? 'Quick log' : 'Custom meal');
+    const mealId = modalState.mealId;
+    if(modalState.tab==='ingredients'){
+      if(modalState.items.length===0){ document.getElementById('saveWarning').style.display='block'; return; }
+      const items = modalState.items;
+      modalState = null;
+      saveMealEntry(key, mealId, name, items, null);
+    }else{
+      const mm = modalState.manualMacros;
+      if(!mm || (!mm.kcal && !mm.p && !mm.c && !mm.f)){ document.getElementById('saveWarning').style.display='block'; return; }
+      modalState = null;
+      saveMealEntry(key, mealId, name, [], mm);
+    }
+  });
+}
+function closeModal(){ modalState = null; render(); }
+function openAddMeal(){
+  modalState = {mode:'add', mealId:null, tab:'ingredients', name:'', items:[], manualMacros:null, search:'',
+    newFoodMode:false, newFood:defaultNewFood(), quickLookupStatus:'idle', quickLookupError:'', quickLookupNote:''};
+  render();
+}
+async function openEditMeal(mealId){
+  const key = dateStr(currentDate);
+  const mk = monthKeyFor(currentDate);
+  const day = monthCache[mk][key];
+  const meal = day.meals.find(m=>m.id===mealId);
+  if(!meal) return;
+  if(meal.manualMacros){
+    modalState = {mode:'edit', mealId, tab:'quicklog', name:meal.name, items:[], manualMacros:{...meal.manualMacros}, search:'',
+      newFoodMode:false, newFood:defaultNewFood(), quickLookupStatus:'idle', quickLookupError:'', quickLookupNote:''};
+  }else{
+    modalState = {mode:'edit', mealId, tab:'ingredients', name:meal.name, items:meal.items.map(i=>({...i})), manualMacros:null, search:'',
+      newFoodMode:false, newFood:defaultNewFood(), quickLookupStatus:'idle', quickLookupError:'', quickLookupNote:''};
+  }
+  render();
+}
+
+/* ===================== MAIN RENDER (async, race-guarded, two views) ===================== */
+let currentView = 'today'; // 'today' | 'progress'
+
+let lastRenderError = null;
+
+async function render(){
+  const myToken = ++renderToken;
+  try{
+    if(currentView === 'today') await renderTodayView(myToken);
+    else await renderProgressView(myToken);
+  }catch(err){
+    // An exception here previously left a blank screen with the user's data
+    // apparently gone. Show a recoverable panel instead — the data is still in
+    // storage, so offer a backup download before anything else.
+    lastRenderError = err;
+    renderErrorBoundary(err);
+  }
+}
+
+function renderErrorBoundary(err){
+  const app = document.getElementById('app');
+  if(!app) return;
+  const msg = (err && err.message) ? err.message : String(err);
+  app.innerHTML = `
+    <div class="error-boundary">
+      <div class="eb-title">Something went wrong displaying this screen</div>
+      <div class="eb-body">Your saved data is safe — this is a display problem, not a data problem. Try reloading. If it keeps happening, download a backup first so nothing is at risk.</div>
+      <div class="eb-actions">
+        <button type="button" class="btn-primary" id="ebReload">Reload</button>
+        <button type="button" class="btn-ghost" id="ebBackup">Download backup</button>
+      </div>
+      <details class="eb-details"><summary>Technical details</summary><pre>${escapeHtml(msg)}</pre></details>
+    </div>
+  `;
+  const reload = document.getElementById('ebReload');
+  if(reload) reload.addEventListener('click', ()=>window.location.reload());
+  const backup = document.getElementById('ebBackup');
+  if(backup) backup.addEventListener('click', ()=>{ downloadBackup().catch(()=>{}); });
+}
+
+function renderTopTabs(){
+  return `
+    <div class="view-tabs">
+      <button type="button" class="view-tab ${currentView==='today'?'active':''}" data-action="switch-view" data-view="today">Today</button>
+      <button type="button" class="view-tab ${currentView==='progress'?'active':''}" data-action="switch-view" data-view="progress">Progress</button>
+    </div>
+  `;
+}
+
+async function renderTodayView(myToken){
+  const key = dateStr(currentDate);
+  const day = await getOrInitDay(key, currentDate);
+  const weekly = await computeWeeklyAverage();
+  if(myToken !== renderToken) return; // a newer render has since started; abandon this one
+
+  const type = day.type;
+  const target = targetFor(type);
+  const planTotal = dayTotals(day.meals);
+  const eaten = checkedTotals(day.meals);
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    ${renderTopTabs()}
+    ${renderHeader(currentDate, type)}
+    <main>
+      ${renderMacroPanel(eaten, planTotal, target, type)}
+      ${renderWeeklyPanel(weekly)}
+      ${renderBodyLogPanel(day)}
+      ${renderTrainingPanel(day)}
+      ${renderMealList(day.meals)}
+    </main>
+    ${renderModalHTML()}
+    ${renderImportModal()}
+  `;
+  attachBodyLogEvents();
+  const importInput = document.getElementById('importFileInput');
+  if(importInput){
+    importInput.addEventListener('change', async (e)=>{
+      const file = e.target.files[0];
+      e.target.value = ''; // allow re-selecting the same file later
+      if(!file) return;
+      const result = await parseBackupFile(file);
+      if(!result.ok){ alert(result.error); return; }
+      importPendingData = result.data;
+      render();
+    });
+  }
+  if(modalState) attachModalEvents();
+  if(importPendingData) attachImportModalEvents();
+}
+
+async function renderProgressView(myToken){
+  const weightSeries = await getBodyLogSeries(90);
+  const inbodyHistory = await getInBodyHistory();
+  const consistency = await computeConsistency();
+  if(myToken !== renderToken) return;
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    ${renderTopTabs()}
+    <div class="progress-head">Progress</div>
+    <main>
+      ${renderWeightChartSection(weightSeries)}
+      ${renderInBodySection(inbodyHistory)}
+      ${renderConsistencySection(consistency)}
+    </main>
+  `;
+}
+
+/* ---- Body log (weight / InBody) ---- */
+function renderBodyLogPanel(day){
+  const b = day.body || {};
+  return `
+    <section class="body-log-panel">
+      <div class="panel-head">Body log</div>
+      <div class="body-log-grid">
+        <div><label>Weight (lb)</label><input type="number" step="any" class="text-input" id="bodyWeight" value="${b.weight??''}"></div>
+        <div><label>Body fat %</label><input type="number" step="any" class="text-input" id="bodyBf" value="${b.bf??''}"></div>
+        <div><label>SMM (lb)</label><input type="number" step="any" class="text-input" id="bodySmm" value="${b.smm??''}"></div>
+      </div>
+    </section>
+  `;
+}
+function attachBodyLogEvents(){
+  const key = dateStr(currentDate);
+  const mk = monthKeyFor(currentDate);
+  const wEl = document.getElementById('bodyWeight');
+  if(!wEl) return;
+  const saveField = (field, val) => {
+    const day = monthCache[mk][key];
+    if(!day.body) day.body = {weight:null, bf:null, smm:null};
+    day.body[field] = (val==='' || val==null) ? null : clamp0(parseFloat(val));
+    persistMonth(mk);
+  };
+  wEl.addEventListener('change', e=>saveField('weight', e.target.value));
+  document.getElementById('bodyBf').addEventListener('change', e=>saveField('bf', e.target.value));
+  document.getElementById('bodySmm').addEventListener('change', e=>saveField('smm', e.target.value));
+}
+
+/* ---- Training & cardio completion ---- */
+function renderTrainingPanel(day){
+  const t = day.training || {liftingDone:false, cardioDone:false};
+  return `
+    <section class="training-panel">
+      <div class="panel-head">Today&rsquo;s training</div>
+      <div class="training-row">
+        <button type="button" class="toggle-pill ${t.liftingDone?'active':''}" data-action="toggle-lifting">Lifting${t.liftingDone?' &#10003;':''}</button>
+        <button type="button" class="toggle-pill ${t.cardioDone?'active':''}" data-action="toggle-cardio">Cardio${t.cardioDone?' &#10003;':''}</button>
+      </div>
+    </section>
+  `;
+}
+function toggleTraining(key, field){
+  const mk = monthKeyFor(currentDate);
+  const day = monthCache[mk][key];
+  if(!day.training) day.training = {liftingDone:false, cardioDone:false};
+  day.training[field] = !day.training[field];
+  persistMonth(mk); render();
+}
+
+/* ---- Progress data aggregation ---- */
+async function getBodyLogSeries(numDays){
+  const end = new Date();
+  const monthsNeeded = new Set();
+  for(let i=0;i<numDays;i++){ const d=new Date(end); d.setDate(d.getDate()-i); monthsNeeded.add(monthKeyFor(d)); }
+  for(const mk of monthsNeeded) await ensureMonthLoaded(mk);
+  const points = [];
+  for(let i=numDays-1;i>=0;i--){
+    const d = new Date(end); d.setDate(d.getDate()-i);
+    const mk = monthKeyFor(d), key = dateStr(d);
+    const day = monthCache[mk] ? monthCache[mk][key] : null;
+    if(day && day.body && (day.body.weight!=null || day.body.bf!=null || day.body.smm!=null)){
+      points.push({date:key, weight:day.body.weight, bf:day.body.bf, smm:day.body.smm});
+    }
+  }
+  return points;
+}
+async function getInBodyHistory(){
+  const points = await getBodyLogSeries(180);
+  return points.filter(p=>p.bf!=null || p.smm!=null);
+}
+async function computeConsistency(){
+  const numDays = 30;
+  const end = new Date();
+  const monthsNeeded = new Set();
+  for(let i=0;i<numDays;i++){ const d=new Date(end); d.setDate(d.getDate()-i); monthsNeeded.add(monthKeyFor(d)); }
+  for(const mk of monthsNeeded) await ensureMonthLoaded(mk);
+  let proteinHit=0, calorieOnTarget=0, liftingDays=0, cardioDays=0, totalConsidered=0;
+  for(let i=0;i<numDays;i++){
+    const d = new Date(end); d.setDate(d.getDate()-i);
+    const mk = monthKeyFor(d), key = dateStr(d);
+    const day = monthCache[mk] ? monthCache[mk][key] : null;
+    if(!day) continue;
+    totalConsidered++;
+    const target = targetFor(day.type);
+    const eaten = checkedTotals(day.meals);
+    if(target.p>0 && eaten.p >= target.p*0.95) proteinHit++;
+    if(target.kcal>0 && Math.abs(eaten.kcal-target.kcal) <= target.kcal*0.1) calorieOnTarget++;
+    if(day.training && day.training.liftingDone) liftingDays++;
+    if(day.training && day.training.cardioDone) cardioDays++;
+  }
+  return {proteinHit, calorieOnTarget, liftingDays, cardioDays, totalConsidered};
+}
+
+/* ---- Progress rendering: weight chart, InBody comparison, consistency ---- */
+function renderWeightChart(points){
+  if(points.length===0) return `<div class="empty-hint">No weight logged yet — add one in the Today view.</div>`;
+  const weights = points.map(p=>p.weight);
+  const min = Math.min(...weights), max = Math.max(...weights);
+  const pad = (max-min)*0.15 || 2;
+  const yMin = min-pad, yMax = max+pad;
+  const w=500, h=160, mL=38, mR=10, mT=10, mB=20;
+  const plotW=w-mL-mR, plotH=h-mT-mB;
+  const xFor = i => points.length<=1 ? mL+plotW/2 : mL + (i/(points.length-1))*plotW;
+  const yFor = v => mT + plotH - ((v-yMin)/(yMax-yMin||1))*plotH;
+  const pathD = points.map((p,i)=>`${i===0?'M':'L'}${xFor(i).toFixed(1)},${yFor(p.weight).toFixed(1)}`).join(' ');
+  const dots = points.map((p,i)=>`<circle cx="${xFor(i).toFixed(1)}" cy="${yFor(p.weight).toFixed(1)}" r="3" fill="var(--kcal)"></circle>`).join('');
+  return `
+    <svg viewBox="0 0 ${w} ${h}" class="weight-chart">
+      <line x1="${mL}" y1="${mT}" x2="${mL}" y2="${h-mB}" stroke="var(--border)" stroke-width="1"/>
+      <line x1="${mL}" y1="${h-mB}" x2="${w-mR}" y2="${h-mB}" stroke="var(--border)" stroke-width="1"/>
+      <text x="2" y="${mT+8}" fill="var(--text-muted)" font-size="9">${yMax.toFixed(1)}</text>
+      <text x="2" y="${h-mB}" fill="var(--text-muted)" font-size="9">${yMin.toFixed(1)}</text>
+      <path d="${pathD}" fill="none" stroke="var(--kcal)" stroke-width="2"/>
+      ${dots}
+    </svg>
+    <div class="chart-caption">${points[0].date} &rarr; ${points[points.length-1].date} &middot; ${points[points.length-1].weight}lb latest</div>
+  `;
+}
+function renderWeightChartSection(points){
+  const withWeight = points.filter(p=>p.weight!=null);
+  return `<section class="progress-card"><div class="panel-head">Weight &middot; last 90 days</div>${renderWeightChart(withWeight)}</section>`;
+}
+function renderInBodySection(history){
+  if(history.length===0){
+    return `<section class="progress-card"><div class="panel-head">Latest InBody</div><div class="empty-hint">No InBody data logged yet — add Body Fat % / SMM in the Today view&rsquo;s Body log.</div></section>`;
+  }
+  const latest = history[history.length-1];
+  const prev = history.length>1 ? history[history.length-2] : null;
+  const rows = [
+    {label:'Weight', unit:'lb', latest:latest.weight, prev:prev?prev.weight:null},
+    {label:'Body Fat %', unit:'%', latest:latest.bf, prev:prev?prev.bf:null},
+    {label:'Skeletal Muscle', unit:'lb', latest:latest.smm, prev:prev?prev.smm:null},
+  ].filter(r=>r.latest!=null);
+  return `
+    <section class="progress-card">
+      <div class="panel-head">Latest InBody &middot; ${latest.date}${prev?` (vs ${prev.date})`:''}</div>
+      ${rows.map(r=>{
+        const delta = (r.prev!=null) ? (r.latest-r.prev) : null;
+        const deltaStr = delta==null ? '' : (delta>=0?'+':'')+delta.toFixed(1)+r.unit;
+        return `<div class="inbody-row"><span>${r.label}</span><span class="inbody-val">${r.latest}${r.unit}</span>${delta!=null?`<span class="inbody-delta ${delta<0?'down':'up'}">${deltaStr}</span>`:'<span class="inbody-delta"></span>'}</div>`;
+      }).join('')}
+    </section>
+  `;
+}
+function renderConsistencySection(c){
+  const n = c.totalConsidered;
+  const rows = [
+    {label:'Protein target hit', val:c.proteinHit},
+    {label:'Calories on target (&plusmn;10%)', val:c.calorieOnTarget},
+    {label:'Lifting completed', val:c.liftingDays},
+    {label:'Cardio completed', val:c.cardioDays, note:'target ~4/week'},
+  ];
+  return `
+    <section class="progress-card">
+      <div class="panel-head">Consistency &middot; last 30 days (${n}/30 logged)</div>
+      ${rows.map(r=>`<div class="consistency-row"><span>${r.label}${r.note?` <span class="consistency-note">(${r.note})</span>`:''}</span><span class="consistency-val">${r.val}/${n}</span></div>`).join('')}
+    </section>
+  `;
+}
+
+/* ===================== TOP-LEVEL EVENT DELEGATION ===================== */
+document.getElementById('app').addEventListener('click', (e)=>{
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const key = dateStr(currentDate);
+  const action = el.dataset.action;
+  if(action==='switch-view'){ currentView = el.dataset.view; render(); }
+  else if(action==='prev-day'){ currentDate.setDate(currentDate.getDate()-1); render(); }
+  else if(action==='next-day'){ currentDate.setDate(currentDate.getDate()+1); render(); }
+  else if(action==='go-today'){ currentDate = new Date(); render(); }
+  else if(action==='reset-day'){
+    if(confirm('Reset this day back to the standard plan? Any edits for this day will be lost.')) resetDay(key, currentDate);
+  }
+  else if(action==='backup'){ downloadBackup(); }
+  else if(action==='import'){ document.getElementById('importFileInput').click(); }
+  else if(action==='toggle-check'){ toggleChecked(key, el.dataset.id); }
+  else if(action==='toggle-lifting'){ toggleTraining(key, 'liftingDone'); }
+  else if(action==='toggle-cardio'){ toggleTraining(key, 'cardioDone'); }
+  else if(action==='delete-meal'){
+    if(confirm('Remove this meal for today?')) deleteMeal(key, el.dataset.id);
+  }
+  else if(action==='edit-meal'){ openEditMeal(el.dataset.id); }
+  else if(action==='open-add-meal'){ openAddMeal(); }
+});
+document.getElementById('app').addEventListener('change', (e)=>{
+  if(e.target.id==='datePicker'){
+    const parts = e.target.value.split('-').map(Number);
+    if(parts.length===3 && !parts.some(isNaN)){
+      currentDate = new Date(parts[0], parts[1]-1, parts[2]);
+      render();
+    }
+  }
+});
+
+
+/* ===================== PWA: install, offline, shortcuts ===================== */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{ /* not available in this context (e.g. file://) — app still works, just without offline caching */ });
+  });
+}
+
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function isIOS(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+function showInstallBanner(kind){
+  const el = document.getElementById('installBanner');
+  if(!el || isStandalone() || localStorage.getItem('installBannerDismissed')==='1') return;
+  if(kind === 'android'){
+    el.innerHTML = `
+      <div class="install-title">Install Recomp Tracker</div>
+      <div class="install-body">Add it to your home screen for a full-screen app with offline support.</div>
+      <div class="install-actions">
+        <button type="button" class="install-dismiss" id="installDismissBtn">Not now</button>
+        <button type="button" class="install-primary" id="installNowBtn">Install</button>
+      </div>`;
+  }else{
+    el.innerHTML = `
+      <div class="install-title">Install Recomp Tracker</div>
+      <div class="install-body">Tap the Share icon below, then "Add to Home Screen" for a full-screen app with offline support.</div>
+      <div class="install-actions">
+        <button type="button" class="install-dismiss" id="installDismissBtn">Got it</button>
+      </div>`;
+  }
+  el.className = 'install-banner visible';
+  document.getElementById('installDismissBtn').addEventListener('click', ()=>{
+    el.className = 'install-banner';
+    try{ localStorage.setItem('installBannerDismissed','1'); }catch(e){}
+  });
+  const nowBtn = document.getElementById('installNowBtn');
+  if(nowBtn) nowBtn.addEventListener('click', async ()=>{
+    if(window.__deferredInstallPrompt){
+      window.__deferredInstallPrompt.prompt();
+      try{ await window.__deferredInstallPrompt.userChoice; }catch(e){}
+    }
+    el.className = 'install-banner';
+  });
+}
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  window.__deferredInstallPrompt = e;
+  showInstallBanner('android');
+});
+if(isIOS() && !isStandalone()){
+  setTimeout(()=>showInstallBanner('ios'), 1200);
+}
+
+function handleShortcutAction(){
+  const params = new URLSearchParams(window.location.search);
+  const action = params.get('action');
+  if(action === 'addmeal'){ openAddMeal(); }
+  else if(action === 'logweight'){
+    setTimeout(()=>{ const el = document.getElementById('bodyWeight'); if(el) el.focus(); }, 100);
+  }
+}
+
+/* ===================== INIT ===================== */
+(async function init(){
+  try{
+    const loadedMeta = await loadDataKey(META_KEY);
+    const result = migrateMeta(loadedMeta);
+    meta = result.meta;
+    // Persist the migrated shape immediately so the upgrade happens once, not on
+    // every load — and so a later failure can't leave storage half-migrated.
+    if(result.migrated) await persistMeta();
+    render();
+    handleShortcutAction();
+  }catch(err){
+    meta = meta || createDefaultMeta();
+    renderErrorBoundary(err);
+  }
+})();
+</script>
+</body>
+</html>
