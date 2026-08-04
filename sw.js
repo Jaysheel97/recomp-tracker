@@ -1,10 +1,11 @@
-const CACHE_NAME = 'recomp-tracker-v2';
+const CACHE_NAME = 'recomp-tracker-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png',
+  './foods-db.js',
 ];
 
 self.addEventListener('install', (event) => {

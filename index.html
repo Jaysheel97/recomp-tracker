@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Recomp Tracker</title>
+<script src="foods-db.js"></script>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="theme-color" content="#15171b">
@@ -74,7 +75,9 @@ button:focus-visible, input:focus-visible, select:focus-visible{outline:2px soli
 
 /* Meal list */
 .meal-list{display:flex;flex-direction:column;gap:10px;}
-.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);border:1px dashed var(--border);border-radius:var(--radius);}
+.empty-state{text-align:center;padding:36px 20px;color:var(--text-muted);border:1px dashed var(--border);border-radius:var(--radius);}
+.empty-title{font-family:var(--font-serif);font-size:15px;color:var(--text);margin-bottom:6px;}
+.empty-sub{font-size:12px;line-height:1.5;}
 .meal-card{display:flex;align-items:flex-start;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;transition:border-color .2s;}
 .meal-card.checked{border-color:var(--protein);}
 .meal-card.checked .meal-name{opacity:.85;}
@@ -95,7 +98,7 @@ button:focus-visible, input:focus-visible, select:focus-visible{outline:2px soli
 .add-meal-btn:hover{border-color:var(--text);color:var(--text);}
 
 /* Modal */
-.modal-backdrop{position:fixed;inset:0;background:rgba(10,11,13,.7);display:flex;align-items:flex-end;justify-content:center;z-index:100;backdrop-filter:blur(2px);}
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,11,13,.7);display:flex;align-items:flex-end;justify-content:center;z-index:400;backdrop-filter:blur(2px);}
 .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:20px;}
 .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .modal-head h3{font-family:var(--font-serif);margin:0;font-size:18px;}
@@ -185,6 +188,64 @@ button:focus-visible, input:focus-visible, select:focus-visible{outline:2px soli
 .inbody-delta.up{color:var(--carbs);}
 .inbody-delta.down{color:var(--rest);}
 .consistency-note{color:var(--text-muted);font-size:11px;font-weight:400;}
+
+/* --- Phase 1a: search results, presets, bottom nav, FAB --- */
+.results-note{font-size:11px;color:var(--text-muted);padding:8px 10px;border-bottom:1px solid var(--border);}
+.ing-serving{font-size:10px;color:var(--text-muted);margin-left:6px;}
+.ing-source-tag.plan{color:var(--kcal);border-color:var(--kcal);}
+.ai-search-block{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border-top:1px dashed var(--border);background:var(--rest-dim);}
+.ai-search-label{font-size:12px;color:var(--text-muted);}
+.sel-row.has-preset{grid-template-areas:"name qty unit sub rm" "preset preset preset preset preset";}
+.sel-row.has-preset .sel-name{grid-area:name;} .sel-row.has-preset .qty-input{grid-area:qty;}
+.sel-row.has-preset .sel-unit{grid-area:unit;} .sel-row.has-preset .sel-sub{grid-area:sub;}
+.sel-row.has-preset .remove-btn{grid-area:rm;}
+.preset-row{grid-area:preset;margin-top:6px;}
+.preset-select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text-muted);padding:5px 8px;border-radius:6px;font-size:12px;}
+
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--surface);border-top:1px solid var(--border);z-index:150;padding-bottom:env(safe-area-inset-bottom);}
+.bottom-nav button{flex:1;background:none;border:none;color:var(--text-muted);padding:10px 4px 12px;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.bottom-nav button.active{color:var(--text);}
+.bottom-nav .nav-icon{font-size:17px;line-height:1;}
+.bottom-nav button.active .nav-icon{color:var(--protein);}
+.fab{position:fixed;right:18px;bottom:74px;width:54px;height:54px;border-radius:50%;background:var(--protein);color:#0e1410;border:none;font-size:28px;line-height:1;cursor:pointer;z-index:160;box-shadow:0 6px 18px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;}
+.fab:active{transform:scale(.94);}
+.app{padding-bottom:120px;}
+.save-indicator{bottom:82px;}
+.install-banner{bottom:80px;}
+.foods-list{display:flex;flex-direction:column;}
+.food-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.food-row:last-child{border-bottom:none;}
+.food-row-main{min-width:0;flex:1;}
+.food-row-name{font-size:13px;}
+.food-row-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-top:2px;}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.settings-row:last-of-type{border-bottom:none;}
+
+/* --- Phase 1b: onboarding, day-type picker, plan editor --- */
+.onboard-wrap{max-width:520px;margin:0 auto;padding-top:32px;}
+.ob-progress{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;color:var(--text-muted);text-align:center;margin-bottom:14px;text-transform:uppercase;}
+.ob-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;}
+.ob-title{font-family:var(--font-serif);font-size:21px;font-weight:600;margin-bottom:6px;}
+.ob-sub{font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:18px;}
+.ob-choices{display:flex;flex-direction:column;gap:10px;}
+.ob-choice{width:100%;text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;color:var(--text);}
+.ob-choice.sel{border-color:var(--protein);background:rgba(79,163,125,.12);}
+.ob-choice-t{font-family:var(--font-serif);font-weight:600;font-size:14px;margin-bottom:4px;}
+.ob-choice-d{font-size:12px;color:var(--text-muted);line-height:1.45;}
+.ob-actions{display:flex;gap:10px;margin-top:22px;}
+.ob-actions .btn-ghost,.ob-actions .btn-primary{flex:1;}
+.ob-actions .btn-primary:disabled{opacity:.45;cursor:not-allowed;}
+
+.daytype-picker{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:4px 0 10px;}
+.daytype-btn{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:9px 2px;cursor:pointer;color:var(--text-muted);display:flex;flex-direction:column;align-items:center;gap:3px;}
+.daytype-btn.training{background:var(--training-dim);border-color:var(--training);color:var(--training);}
+.dt-day{font-family:var(--font-mono);font-size:13px;font-weight:600;}
+.dt-state{font-size:9px;text-transform:uppercase;letter-spacing:.4px;}
+
+.plan-edit-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.mini-select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:6px;font-size:12px;}
+.target-edit-group{margin-top:12px;}
+.target-edit-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px;}
 .error-boundary{background:var(--surface);border:1px solid var(--training);border-radius:var(--radius);padding:20px;margin-top:24px;}
 .eb-title{font-family:var(--font-serif);font-weight:600;font-size:16px;margin-bottom:8px;}
 .eb-body{font-size:13px;color:var(--text-muted);line-height:1.55;margin-bottom:14px;}
@@ -296,8 +357,85 @@ function createDefaultMeta(){
   };
 }
 
-function allIngredients(){ return INGREDIENTS.concat(meta && meta.customFoods ? meta.customFoods : []); }
+/* ===================== FOOD POOL =====================
+   Three sources feed one searchable pool:
+     1. INGREDIENTS  - the original plan foods (referenced by template item ids)
+     2. FOOD_DB      - the bundled offline database (foods-db.js, per 100g)
+     3. customFoods  - user-added, including AI lookups
+   Plan foods win on exact name collisions so template references stay stable. */
+let DB_FOODS = [];
+function loadBundledFoodDb(){
+  const raw = (typeof window !== 'undefined' && Array.isArray(window.FOOD_DB)) ? window.FOOD_DB : [];
+  DB_FOODS = raw.map(row => ({
+    id: 'db-' + row.id,
+    name: row.name,
+    cat: row.cat,
+    unit: 'g', per: 100, unitLabel: 'g',
+    kcal: row.kcal, p: row.p, c: row.c, f: row.f,
+    servings: Array.isArray(row.servings) ? row.servings : [],
+    source: 'db',
+  }));
+}
+
+let _poolCache = null;
+let _poolStamp = '';
+function allIngredients(){
+  const custom = (meta && meta.customFoods) ? meta.customFoods : [];
+  // Cheap invalidation: pool only changes when custom foods or the DB change.
+  const stamp = `${DB_FOODS.length}:${custom.length}`;
+  if(_poolCache && _poolStamp === stamp) return _poolCache;
+  const out = [];
+  const seen = new Set();
+  for(const list of [INGREDIENTS, custom, DB_FOODS]){
+    for(const item of list){
+      const key = item.name.trim().toLowerCase();
+      if(seen.has(key)) continue;
+      seen.add(key);
+      out.push(item);
+    }
+  }
+  _poolCache = out; _poolStamp = stamp;
+  return out;
+}
+function invalidateFoodPool(){ _poolCache = null; }
 function ingredientById(id){ return allIngredients().find(i=>i.id===id); }
+function defaultQtyFor(ing){
+  if(Array.isArray(ing.servings) && ing.servings.length) return ing.servings[0].g;
+  return ing.unit === 'g' ? 100 : 1;
+}
+/* Ranked, capped search. Rendering 800 rows is both slow and useless, so we
+   rank (exact > prefix > word-prefix > substring) and cap. */
+function searchFoods(query, limit){
+  const q = query.trim().toLowerCase();
+  const pool = allIngredients();
+  if(!q){
+    // No query: show the user's own foods (plan + custom), not the whole database.
+    const custom = (meta && meta.customFoods) ? meta.customFoods : [];
+    return INGREDIENTS.concat(custom).slice(0, limit);
+  }
+  const scored = [];
+  for(const item of pool){
+    const n = item.name.toLowerCase();
+    const words = n.split(/[\s(/,+&-]+/).filter(Boolean);
+    let score = -1;
+    if(n === q) score = 0;                                  // exact full name
+    else if(words.includes(q)) score = 1;                   // exact word ("roti" in "Roti / Chapati")
+    else if(n.startsWith(q)) score = 2;                     // name prefix
+    else if(words.some(w => w.startsWith(q))) score = 3;    // word prefix ("Rotisserie")
+    else if(n.includes(q)) score = 4;                       // substring
+    if(score >= 0){
+      // Prefer the user's own foods at equal relevance.
+      const ownBonus = (item.source === 'user') ? -0.4 : (item.source === 'db' ? 0.2 : 0);
+      // Prefer matches at the START of the name: searching "roti" should surface
+      // "Roti / Chapati" ahead of "Missi Roti".
+      const wordIdx = words.indexOf(q);
+      const posBonus = (wordIdx === 0) ? -0.3 : (wordIdx > 0 ? 0.1 : 0);
+      scored.push({item, score: score + ownBonus + posBonus});
+    }
+  }
+  scored.sort((a,b)=> a.score - b.score || a.item.name.length - b.item.name.length);
+  return scored.slice(0, limit).map(s=>s.item);
+}
 function templateFor(type){
   const t = meta.profile.templates[type];
   return Array.isArray(t) ? t : [];
@@ -723,6 +861,7 @@ async function applyImport(data, mode){
       await persistMonth(mk);
     }
     meta = data.meta;
+    invalidateFoodPool();
     await persistMeta();
   }else{
     for(const mk of Object.keys(data.months)){
@@ -743,7 +882,7 @@ async function applyImport(data, mode){
     for(const food of data.meta.customFoods){
       if(!existingIds.has(food.id)){ meta.customFoods.push(food); addedAny = true; }
     }
-    if(addedAny) await persistMeta();
+    if(addedAny){ invalidateFoodPool(); await persistMeta(); }
   }
   render();
 }
@@ -805,9 +944,6 @@ function renderHeader(date, type){
         <span class="pill ${pillClass}">${pillText}</span>
         ${!isToday ? `<button class="link-btn" data-action="go-today">Today</button>` : ''}
         <button class="link-btn" data-action="reset-day">Reset to default</button>
-        <button class="link-btn" data-action="backup">Backup</button>
-        <button class="link-btn" data-action="import">Import</button>
-        <input type="file" id="importFileInput" accept="application/json" style="display:none;">
       </div>
     </header>
   `;
@@ -895,13 +1031,17 @@ function renderMealCard(meal){
 function renderMealList(meals){
   if(meals.length===0){
     return `<section class="meal-list">
-      <div class="empty-state">No meals here yet. Add one below to get started.</div>
+      <div class="empty-state">
+        <div class="empty-title">Nothing logged yet</div>
+        <div class="empty-sub">Add what you ate and your macros will fill in below.</div>
+      </div>
       <button class="add-meal-btn" data-action="open-add-meal">+ Add a meal</button>
     </section>`;
   }
+  // No inline add button here: the floating action button is always visible,
+  // so a second one at the end of the list is redundant.
   return `<section class="meal-list">
     ${meals.map(renderMealCard).join('')}
-    <button class="add-meal-btn" data-action="open-add-meal">+ Add a meal</button>
   </section>`;
 }
 
@@ -909,19 +1049,52 @@ function renderMealList(meals){
 function defaultNewFood(){
   return {name:'', unit:'g', unitLabel:'', servingGrams:'', kcal:'', p:'', c:'', f:'', lookupDesc:'', lookupStatus:'idle', lookupNote:'', lookupError:'', conversionWarning:''};
 }
+const SEARCH_LIMIT = 40;
 function renderIngredientResults(){
-  const q = modalState.search.trim().toLowerCase();
-  const filtered = q ? allIngredients().filter(i=>i.name.toLowerCase().includes(q)) : allIngredients();
-  const listHtml = filtered.length===0
-    ? `<div class="empty-hint">No foods match &ldquo;${escapeHtml(modalState.search)}&rdquo;.</div>`
-    : filtered.map(i=>`
-        <div class="ing-row">
-          <span class="ing-name">${escapeHtml(i.name)}${i.source==='user'?'<span class="ing-source-tag">mine</span>':''}</span>
-          <span class="ing-meta">${ingredientMetaLabel(i)}</span>
-          <button type="button" data-action="add-ing" data-id="${i.id}">Add</button>
-        </div>
-      `).join('');
-  return listHtml;
+  const query = modalState.search.trim();
+  const results = searchFoods(query, SEARCH_LIMIT);
+  const aiStatus = modalState.searchAiStatus || 'idle';
+
+  const rows = results.map(i=>{
+    const tag = i.source==='user' ? '<span class="ing-source-tag">mine</span>'
+              : (i.source==='db' ? '' : '<span class="ing-source-tag plan">plan</span>');
+    const servingHint = (Array.isArray(i.servings) && i.servings.length)
+      ? `<span class="ing-serving">${escapeHtml(i.servings[0].label)}</span>` : '';
+    return `
+      <div class="ing-row">
+        <span class="ing-name">${escapeHtml(i.name)}${tag}${servingHint}</span>
+        <span class="ing-meta">${ingredientMetaLabel(i)}</span>
+        <button type="button" data-action="add-ing" data-id="${i.id}">Add</button>
+      </div>`;
+  }).join('');
+
+  const header = !query
+    ? `<div class="results-note">Your foods &mdash; start typing to search all ${allIngredients().length} foods</div>`
+    : (results.length >= SEARCH_LIMIT ? `<div class="results-note">Showing first ${SEARCH_LIMIT} matches &mdash; keep typing to narrow</div>` : '');
+
+  // AI lookup lives here, in the results, rather than behind a separate form.
+  // It is the natural place to look when a search comes up short.
+  let aiBlock = '';
+  if(query){
+    const label = results.length === 0
+      ? `No match for &ldquo;${escapeHtml(query)}&rdquo;.`
+      : `Not the right one?`;
+    aiBlock = `
+      <div class="ai-search-block">
+        <span class="ai-search-label">${label}</span>
+        <button type="button" class="lookup-btn" data-action="search-ai-lookup" ${aiStatus==='loading'?'disabled':''}>
+          ${aiStatus==='loading' ? 'Looking up&hellip;' : 'Look up with AI'}
+        </button>
+      </div>`;
+  }
+  // Status messages must live OUTSIDE the query check: on success we clear the
+  // search box, and the confirmation still needs to be visible.
+  const aiStatusHtml = `
+    ${modalState.searchAiError ? `<div class="lookup-status error">${escapeHtml(modalState.searchAiError)}</div>` : ''}
+    ${modalState.searchAiNote ? `<div class="lookup-status">${escapeHtml(modalState.searchAiNote)}</div>` : ''}
+  `;
+
+  return header + (rows || (query ? '' : `<div class="empty-hint">No foods yet.</div>`)) + aiBlock + aiStatusHtml;
 }
 function renderNewFoodForm(){
   const nf = modalState.newFood;
@@ -972,13 +1145,25 @@ function renderSelectedItems(){
     const ing = ingredientById(item.ing);
     if(!ing) return '';
     const m = itemMacros(item);
+    // Serving presets: picking one just sets the quantity in the food's native
+    // unit, so the stored data model is unchanged.
+    let presetHtml = '';
+    if(Array.isArray(ing.servings) && ing.servings.length){
+      const opts = ing.servings.map(s=>{
+        const sel = Math.abs(item.qty - s.g) < 0.01 ? ' selected' : '';
+        return `<option value="${s.g}"${sel}>${escapeHtml(s.label)}</option>`;
+      }).join('');
+      const custom = ing.servings.some(s=>Math.abs(item.qty - s.g) < 0.01) ? '' : '<option value="" selected>custom</option>';
+      presetHtml = `<select class="preset-select" data-idx="${idx}" aria-label="Serving size for ${escapeHtml(ing.name)}">${custom}${opts}</select>`;
+    }
     return `
-      <div class="sel-row">
+      <div class="sel-row${presetHtml?' has-preset':''}">
         <span class="sel-name" title="${escapeHtml(ing.name)}">${escapeHtml(ing.name)}</span>
         <input type="number" step="any" min="0" class="qty-input" data-idx="${idx}" value="${item.qty}" aria-label="Quantity of ${escapeHtml(ing.name)}">
         <span class="sel-unit">${ing.unitLabel}</span>
         <span class="sel-sub" id="item-sub-${idx}">${m.kcal.toFixed(0)} kcal</span>
         <button type="button" class="remove-btn" data-action="remove-item" data-idx="${idx}" aria-label="Remove ${escapeHtml(ing.name)}">&times;</button>
+        ${presetHtml ? `<div class="preset-row">${presetHtml}</div>` : ''}
       </div>
     `;
   }).join('');
@@ -1071,6 +1256,21 @@ function attachSelectedItemsEvents(){
       if(totalEl) totalEl.innerHTML = renderModalTotalText();
     });
   });
+  container.querySelectorAll('.preset-select').forEach(sel=>{
+    sel.addEventListener('change', (e)=>{
+      const idx = parseInt(e.target.dataset.idx, 10);
+      const g = parseFloat(e.target.value);
+      if(!isFinite(g)) return;
+      modalState.items[idx].qty = g;
+      const qtyInput = container.querySelector(`.qty-input[data-idx="${idx}"]`);
+      if(qtyInput) qtyInput.value = g;
+      const m = itemMacros(modalState.items[idx]);
+      const subEl = document.getElementById(`item-sub-${idx}`);
+      if(subEl) subEl.textContent = `${m.kcal.toFixed(0)} kcal`;
+      const totalEl = document.getElementById('modalTotal');
+      if(totalEl) totalEl.innerHTML = renderModalTotalText();
+    });
+  });
   container.querySelectorAll('[data-action="remove-item"]').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       const idx = parseInt(e.currentTarget.dataset.idx, 10);
@@ -1151,6 +1351,7 @@ function attachNewFoodEvents(){
       source:'user'
     };
     meta.customFoods.push(newFood);
+    invalidateFoodPool();
     persistMeta();
     modalState.items.push({ing:newFood.id, qty: unit==='g' ? 100 : 1});
     modalState.newFoodMode = false;
@@ -1202,17 +1403,57 @@ function attachModalEvents(){
   });
 
   if(modalState.tab==='ingredients'){
+    let searchDebounce = null;
     document.getElementById('ingredientSearch').addEventListener('input', (e)=>{
       modalState.search = e.target.value;
-      document.getElementById('ingredientResults').innerHTML = renderIngredientResults();
+      modalState.searchAiError = '';
+      modalState.searchAiNote = '';
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(()=>{
+        const el = document.getElementById('ingredientResults');
+        if(el) el.innerHTML = renderIngredientResults();
+      }, 120);
     });
-    document.getElementById('ingredientResults').addEventListener('click', (e)=>{
+    document.getElementById('ingredientResults').addEventListener('click', async (e)=>{
+      const aiBtn = e.target.closest('[data-action="search-ai-lookup"]');
+      if(aiBtn){
+        const desc = modalState.search.trim();
+        if(!desc) return;
+        modalState.searchAiStatus = 'loading';
+        modalState.searchAiError = ''; modalState.searchAiNote = '';
+        document.getElementById('ingredientResults').innerHTML = renderIngredientResults();
+        const result = await aiLookupMacros(desc, 'per100g');
+        if(!modalState) return;
+        modalState.searchAiStatus = 'idle';
+        if(result.ok){
+          // Save as a first-class food: searchable, editable, exported in backups.
+          const sg = Number(result.data.serving_grams);
+          const newFood = {
+            id: 'custom-' + Date.now(),
+            name: desc,
+            unit: 'g', per: 100, unitLabel: 'g',
+            kcal: clamp0(result.data.kcal), p: clamp0(result.data.p),
+            c: clamp0(result.data.c), f: clamp0(result.data.f),
+            servings: (isFinite(sg) && sg > 0) ? [{label:`1 serving (${Math.round(sg)}g)`, g:Math.round(sg)}] : [],
+            source: 'user',
+          };
+          meta.customFoods.push(newFood);
+          invalidateFoodPool();
+          persistMeta();
+          modalState.items.push({ing:newFood.id, qty: defaultQtyFor(newFood)});
+          modalState.searchAiNote = `Added "${desc}" to your foods. ${result.data.notes || ''}`.trim();
+          modalState.search = '';
+        }else{
+          modalState.searchAiError = `Couldn't get an estimate (${result.error}). You can add it manually below.`;
+        }
+        render();
+        return;
+      }
       const btn = e.target.closest('[data-action="add-ing"]');
       if(!btn) return;
       const ing = ingredientById(btn.dataset.id);
       if(!ing) return;
-      const defaultQty = ing.unit==='g' ? 100 : 1;
-      modalState.items.push({ing:ing.id, qty:defaultQty});
+      modalState.items.push({ing:ing.id, qty: defaultQtyFor(ing)});
       document.getElementById('selectedItems').innerHTML = renderSelectedItems();
       document.getElementById('modalTotal').innerHTML = renderModalTotalText();
       attachSelectedItemsEvents();
@@ -1231,23 +1472,48 @@ function attachModalEvents(){
     const key = dateStr(currentDate);
     const name = modalState.name.trim() || (modalState.tab==='quicklog' ? 'Quick log' : 'Custom meal');
     const mealId = modalState.mealId;
+    // The same modal edits both a logged day and a plan template; `target`
+    // decides which one the save lands in.
+    const toPlan = modalState.target === 'plan';
+    const planIdx = modalState.planIdx;
     if(modalState.tab==='ingredients'){
       if(modalState.items.length===0){ document.getElementById('saveWarning').style.display='block'; return; }
       const items = modalState.items;
       modalState = null;
-      saveMealEntry(key, mealId, name, items, null);
+      if(toPlan) savePlanMeal(planIdx, name, items, null);
+      else saveMealEntry(key, mealId, name, items, null);
     }else{
       const mm = modalState.manualMacros;
       if(!mm || (!mm.kcal && !mm.p && !mm.c && !mm.f)){ document.getElementById('saveWarning').style.display='block'; return; }
       modalState = null;
-      saveMealEntry(key, mealId, name, [], mm);
+      if(toPlan) savePlanMeal(planIdx, name, [], mm);
+      else saveMealEntry(key, mealId, name, [], mm);
     }
   });
 }
 function closeModal(){ modalState = null; render(); }
+function openPlanMealModal(idx){
+  const tpl = templateFor(planEditType);
+  const meal = (idx === null || idx === undefined) ? null : tpl[idx];
+  modalState = {
+    mode: meal ? 'edit' : 'add',
+    target: 'plan',            // routes save to the template instead of the day
+    planIdx: (idx === null || idx === undefined) ? null : idx,
+    mealId: null,
+    tab: (meal && meal.manualMacros) ? 'quicklog' : 'ingredients',
+    name: meal ? meal.name : '',
+    items: meal && !meal.manualMacros ? meal.items.map(i=>({...i})) : [],
+    manualMacros: meal && meal.manualMacros ? {...meal.manualMacros} : null,
+    search: '',
+    newFoodMode:false, newFood:defaultNewFood(),
+    quickLookupStatus:'idle', quickLookupError:'', quickLookupNote:'',
+    searchAiStatus:'idle', searchAiError:'', searchAiNote:'',
+  };
+  render();
+}
 function openAddMeal(){
-  modalState = {mode:'add', mealId:null, tab:'ingredients', name:'', items:[], manualMacros:null, search:'',
-    newFoodMode:false, newFood:defaultNewFood(), quickLookupStatus:'idle', quickLookupError:'', quickLookupNote:''};
+  modalState = {mode:'add', target:'day', planIdx:null, mealId:null, tab:'ingredients', name:'', items:[], manualMacros:null, search:'',
+    newFoodMode:false, newFood:defaultNewFood(), quickLookupStatus:'idle', quickLookupError:'', quickLookupNote:'', searchAiStatus:'idle', searchAiError:'', searchAiNote:''};
   render();
 }
 async function openEditMeal(mealId){
@@ -1257,11 +1523,11 @@ async function openEditMeal(mealId){
   const meal = day.meals.find(m=>m.id===mealId);
   if(!meal) return;
   if(meal.manualMacros){
-    modalState = {mode:'edit', mealId, tab:'quicklog', name:meal.name, items:[], manualMacros:{...meal.manualMacros}, search:'',
-      newFoodMode:false, newFood:defaultNewFood(), quickLookupStatus:'idle', quickLookupError:'', quickLookupNote:''};
+    modalState = {mode:'edit', target:'day', planIdx:null, mealId, tab:'quicklog', name:meal.name, items:[], manualMacros:{...meal.manualMacros}, search:'',
+      newFoodMode:false, newFood:defaultNewFood(), quickLookupStatus:'idle', quickLookupError:'', quickLookupNote:'', searchAiStatus:'idle', searchAiError:'', searchAiNote:''};
   }else{
-    modalState = {mode:'edit', mealId, tab:'ingredients', name:meal.name, items:meal.items.map(i=>({...i})), manualMacros:null, search:'',
-      newFoodMode:false, newFood:defaultNewFood(), quickLookupStatus:'idle', quickLookupError:'', quickLookupNote:''};
+    modalState = {mode:'edit', target:'day', planIdx:null, mealId, tab:'ingredients', name:meal.name, items:meal.items.map(i=>({...i})), manualMacros:null, search:'',
+      newFoodMode:false, newFood:defaultNewFood(), quickLookupStatus:'idle', quickLookupError:'', quickLookupNote:'', searchAiStatus:'idle', searchAiError:'', searchAiNote:''};
   }
   render();
 }
@@ -1274,8 +1540,20 @@ let lastRenderError = null;
 async function render(){
   const myToken = ++renderToken;
   try{
+    // A user who has not completed setup sees only onboarding.
+    if(meta && meta.profile && !meta.profile.onboarded){
+      if(!onboardState) startOnboarding();
+      const app = document.getElementById('app');
+      app.innerHTML = renderOnboarding();
+      attachOnboardingEvents();
+      return;
+    }
     if(currentView === 'today') await renderTodayView(myToken);
-    else await renderProgressView(myToken);
+    else if(currentView === 'progress') await renderProgressView(myToken);
+    else if(currentView === 'foods') await renderFoodsView(myToken);
+    else if(currentView === 'settings') await renderSettingsView(myToken);
+    else if(currentView === 'planedit') await renderPlanEditorView(myToken);
+    else await renderTodayView(myToken);
   }catch(err){
     // An exception here previously left a blank screen with the user's data
     // apparently gone. Show a recoverable panel instead — the data is still in
@@ -1306,13 +1584,19 @@ function renderErrorBoundary(err){
   if(backup) backup.addEventListener('click', ()=>{ downloadBackup().catch(()=>{}); });
 }
 
-function renderTopTabs(){
-  return `
-    <div class="view-tabs">
-      <button type="button" class="view-tab ${currentView==='today'?'active':''}" data-action="switch-view" data-view="today">Today</button>
-      <button type="button" class="view-tab ${currentView==='progress'?'active':''}" data-action="switch-view" data-view="progress">Progress</button>
-    </div>
-  `;
+function renderTopTabs(){ return ''; }
+
+function renderBottomNav(){
+  const tabs = [
+    {id:'today', icon:'&#9679;', label:'Today'},
+    {id:'progress', icon:'&#9650;', label:'Progress'},
+    {id:'foods', icon:'&#9632;', label:'Foods'},
+    {id:'settings', icon:'&#9881;', label:'Settings'},
+  ];
+  return `<nav class="bottom-nav" role="navigation">${tabs.map(t=>`
+    <button type="button" class="${currentView===t.id?'active':''}" data-action="switch-view" data-view="${t.id}" aria-current="${currentView===t.id?'page':'false'}">
+      <span class="nav-icon">${t.icon}</span><span>${t.label}</span>
+    </button>`).join('')}</nav>`;
 }
 
 async function renderTodayView(myToken){
@@ -1338,23 +1622,11 @@ async function renderTodayView(myToken){
       ${renderMealList(day.meals)}
     </main>
     ${renderModalHTML()}
-    ${renderImportModal()}
+    <button type="button" class="fab" data-action="open-add-meal" aria-label="Add a meal">+</button>
+    ${renderBottomNav()}
   `;
   attachBodyLogEvents();
-  const importInput = document.getElementById('importFileInput');
-  if(importInput){
-    importInput.addEventListener('change', async (e)=>{
-      const file = e.target.files[0];
-      e.target.value = ''; // allow re-selecting the same file later
-      if(!file) return;
-      const result = await parseBackupFile(file);
-      if(!result.ok){ alert(result.error); return; }
-      importPendingData = result.data;
-      render();
-    });
-  }
   if(modalState) attachModalEvents();
-  if(importPendingData) attachImportModalEvents();
 }
 
 async function renderProgressView(myToken){
@@ -1372,7 +1644,418 @@ async function renderProgressView(myToken){
       ${renderInBodySection(inbodyHistory)}
       ${renderConsistencySection(consistency)}
     </main>
+    ${renderBottomNav()}
   `;
+}
+
+/* ---- Foods library view ---- */
+let foodsSearch = '';
+async function renderFoodsView(myToken){
+  if(myToken !== renderToken) return;
+  const results = searchFoods(foodsSearch, 60);
+  const customCount = (meta.customFoods||[]).length;
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="progress-head">Foods</div>
+    <main>
+      <section class="progress-card">
+        <input id="foodsSearchInput" class="text-input" placeholder="Search ${allIngredients().length} foods&hellip;" value="${escapeHtml(foodsSearch)}">
+        <div class="panel-head" style="margin-top:14px;">${foodsSearch ? `${results.length} result${results.length===1?'':'s'}` : `Your foods &middot; ${customCount} custom`}</div>
+        <div class="foods-list">
+          ${results.length===0 ? `<div class="empty-hint">No foods match. Add one from any meal&rsquo;s ingredient search.</div>` : results.map(i=>`
+            <div class="food-row">
+              <div class="food-row-main">
+                <div class="food-row-name">${escapeHtml(i.name)}${i.source==='user'?'<span class="ing-source-tag">mine</span>':''}</div>
+                <div class="food-row-meta">${ingredientMetaLabel(i)} &middot; ${i.p}P / ${i.c}C / ${i.f}F${(i.servings&&i.servings.length)?` &middot; ${escapeHtml(i.servings[0].label)}`:''}</div>
+              </div>
+              ${i.source==='user' ? `<button type="button" class="icon-btn" data-action="delete-food" data-id="${i.id}" aria-label="Delete ${escapeHtml(i.name)}">&#128465;</button>` : ''}
+            </div>`).join('')}
+        </div>
+      </section>
+    </main>
+    ${renderBottomNav()}
+  `;
+  const input = document.getElementById('foodsSearchInput');
+  if(input){
+    let t = null;
+    input.addEventListener('input', (e)=>{
+      foodsSearch = e.target.value;
+      clearTimeout(t);
+      t = setTimeout(()=>render(), 150);
+    });
+  }
+}
+function deleteCustomFood(id){
+  meta.customFoods = (meta.customFoods||[]).filter(f=>f.id !== id);
+  invalidateFoodPool();
+  persistMeta();
+  render();
+}
+
+/* ---- Settings view (Phase 1b fills plan editor / targets / schedule) ---- */
+async function renderSettingsView(myToken){
+  if(myToken !== renderToken) return;
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="progress-head">Settings</div>
+    <main>
+      ${renderSettingsSections()}
+    </main>
+    ${renderImportModal()}
+    ${renderBottomNav()}
+  `;
+  attachSettingsEvents();
+  if(importPendingData) attachImportModalEvents();
+}
+function renderSettingsSections(){
+  const prof = meta.profile;
+  const tTrain = targetFor('training');
+  const tRest = targetFor('rest');
+  const sameTargets = prof.dayTypes.every(d=>d===prof.dayTypes[0]);
+  return `
+    <section class="progress-card">
+      <div class="panel-head">Daily targets</div>
+      <div class="settings-row">
+        <span>How targets are set</span>
+        <select id="targetsModeSelect" class="mini-select">
+          <option value="auto" ${prof.targetsMode==='auto'?'selected':''}>From my meal plan</option>
+          <option value="manual" ${prof.targetsMode==='manual'?'selected':''}>I set them</option>
+        </select>
+      </div>
+      ${prof.targetsMode === 'manual' ? `
+        <div class="target-edit-group">
+          <div class="target-edit-label">Training days</div>
+          <div class="macro-input-grid">
+            <div><label>Calories</label><input class="text-input tgt-input" data-type="training" data-k="kcal" type="number" step="any" value="${tTrain.kcal||''}"></div>
+            <div><label>Protein (g)</label><input class="text-input tgt-input" data-type="training" data-k="p" type="number" step="any" value="${tTrain.p||''}"></div>
+            <div><label>Carbs (g)</label><input class="text-input tgt-input" data-type="training" data-k="c" type="number" step="any" value="${tTrain.c||''}"></div>
+            <div><label>Fat (g)</label><input class="text-input tgt-input" data-type="training" data-k="f" type="number" step="any" value="${tTrain.f||''}"></div>
+          </div>
+          ${!sameTargets ? `
+          <div class="target-edit-label">Rest days</div>
+          <div class="macro-input-grid">
+            <div><label>Calories</label><input class="text-input tgt-input" data-type="rest" data-k="kcal" type="number" step="any" value="${tRest.kcal||''}"></div>
+            <div><label>Protein (g)</label><input class="text-input tgt-input" data-type="rest" data-k="p" type="number" step="any" value="${tRest.p||''}"></div>
+            <div><label>Carbs (g)</label><input class="text-input tgt-input" data-type="rest" data-k="c" type="number" step="any" value="${tRest.c||''}"></div>
+            <div><label>Fat (g)</label><input class="text-input tgt-input" data-type="rest" data-k="f" type="number" step="any" value="${tRest.f||''}"></div>
+          </div>` : `<div class="hint-text">Every day is the same type right now, so one set of targets applies all week.</div>`}
+        </div>
+      ` : `
+        <div class="hint-text">Targets come from your meal plan totals below. Training ${tTrain.kcal.toFixed(0)} kcal &middot; Rest ${tRest.kcal.toFixed(0)} kcal.</div>
+      `}
+    </section>
+
+    <section class="progress-card">
+      <div class="panel-head">Training day schedule</div>
+      ${renderDayTypePicker(prof.dayTypes, 'set')}
+      <div class="hint-text">Tap a day to switch it between training and rest.</div>
+    </section>
+
+    <section class="progress-card">
+      <div class="panel-head">Meal plan</div>
+      <div class="settings-row"><span>Training day plan</span><button type="button" class="link-btn" data-action="edit-plan" data-type="training">${templateFor('training').length} meals</button></div>
+      <div class="settings-row"><span>Rest day plan</span><button type="button" class="link-btn" data-action="edit-plan" data-type="rest">${templateFor('rest').length} meals</button></div>
+      <div class="hint-text">Editing a plan changes what new days start with. Days you&rsquo;ve already logged are untouched.</div>
+    </section>
+
+    <section class="progress-card">
+      <div class="panel-head">Data</div>
+      <div class="settings-row"><span>Backup your data</span><button type="button" class="link-btn" data-action="backup">Download</button></div>
+      <div class="settings-row"><span>Import a backup</span><button type="button" class="link-btn" data-action="import">Import</button></div>
+      <input type="file" id="importFileInput" accept="application/json" style="display:none;">
+      <div class="settings-row"><span>Run setup again</span><button type="button" class="link-btn" data-action="rerun-onboarding">Start over</button></div>
+    </section>
+  `;
+}
+function attachSettingsEvents(){
+  const importInput = document.getElementById('importFileInput');
+  if(importInput){
+    importInput.addEventListener('change', async (e)=>{
+      const file = e.target.files[0];
+      e.target.value = '';
+      if(!file) return;
+      const result = await parseBackupFile(file);
+      if(!result.ok){ alert(result.error); return; }
+      importPendingData = result.data;
+      render();
+    });
+  }
+  const modeSel = document.getElementById('targetsModeSelect');
+  if(modeSel) modeSel.addEventListener('change', (e)=>{
+    const mode = e.target.value;
+    // Switching to manual seeds the fields from the currently effective targets,
+    // so the numbers don't jump when the user flips the switch.
+    if(mode === 'manual'){
+      meta.profile.targets = { training: {...targetFor('training')}, rest: {...targetFor('rest')} };
+    }
+    meta.profile.targetsMode = mode;
+    persistMeta();
+    render();
+  });
+  document.querySelectorAll('.tgt-input').forEach(inp=>{
+    inp.addEventListener('change', (e)=>{
+      const type = e.target.dataset.type, k = e.target.dataset.k;
+      if(!meta.profile.targets[type]) meta.profile.targets[type] = {kcal:0,p:0,c:0,f:0};
+      meta.profile.targets[type][k] = clamp0(parseFloat(e.target.value));
+      // Keep rest in step with training while every day is the same type.
+      const same = meta.profile.dayTypes.every(d=>d===meta.profile.dayTypes[0]);
+      if(same) meta.profile.targets[type==='training'?'rest':'training'] = {...meta.profile.targets[type]};
+      persistMeta();
+    });
+  });
+  document.querySelectorAll('[data-set="daytype"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i = parseInt(btn.dataset.idx, 10);
+      meta.profile.dayTypes[i] = meta.profile.dayTypes[i]==='training' ? 'rest' : 'training';
+      persistMeta();
+      render();
+    });
+  });
+}
+
+/* ===================== ONBOARDING (Phase 1b) =====================
+   Runs only when profile.onboarded is false — existing users are marked
+   onboarded by the Phase 0 migration and never see this. */
+let onboardState = null;
+
+function startOnboarding(){
+  onboardState = {
+    step: 0,
+    mode: null,              // 'plan' | 'log'
+    dayTypes: DEFAULT_DAY_TYPES.slice(),
+    targets: {kcal:'', p:'', c:'', f:''},
+    usesTrainingDays: null,  // bool
+  };
+}
+function emptyDayTemplate(){
+  return [
+    {id:'breakfast', name:'Breakfast', items:[]},
+    {id:'lunch', name:'Lunch', items:[]},
+    {id:'dinner', name:'Dinner', items:[]},
+    {id:'snacks', name:'Snacks', items:[]},
+  ];
+}
+function onboardingTotalSteps(){
+  if(!onboardState || !onboardState.mode) return 4;
+  return onboardState.mode === 'plan' ? 2 : 4;
+}
+function renderOnboarding(){
+  const s = onboardState;
+  const total = onboardingTotalSteps();
+  let body = '';
+
+  if(s.step === 0){
+    body = `
+      <div class="ob-title">Welcome</div>
+      <div class="ob-sub">How do you want to use this?</div>
+      <div class="ob-choices">
+        <button type="button" class="ob-choice ${s.mode==='log'?'sel':''}" data-ob="mode-log">
+          <div class="ob-choice-t">Log what I eat</div>
+          <div class="ob-choice-d">Start each day empty and add meals as you go. Set your own targets.</div>
+        </button>
+        <button type="button" class="ob-choice ${s.mode==='plan'?'sel':''}" data-ob="mode-plan">
+          <div class="ob-choice-t">Follow a fixed plan</div>
+          <div class="ob-choice-d">Start with a sample meal plan you can edit, and check meals off as you eat them.</div>
+        </button>
+      </div>`;
+  }
+  else if(s.step === 1 && s.mode === 'log'){
+    body = `
+      <div class="ob-title">Your daily targets</div>
+      <div class="ob-sub">You can change these any time in Settings.</div>
+      <div class="macro-input-grid">
+        <div><label>Calories</label><input id="obKcal" type="number" step="any" class="text-input" value="${s.targets.kcal}" placeholder="2200"></div>
+        <div><label>Protein (g)</label><input id="obP" type="number" step="any" class="text-input" value="${s.targets.p}" placeholder="150"></div>
+        <div><label>Carbs (g)</label><input id="obC" type="number" step="any" class="text-input" value="${s.targets.c}" placeholder="220"></div>
+        <div><label>Fat (g)</label><input id="obF" type="number" step="any" class="text-input" value="${s.targets.f}" placeholder="70"></div>
+      </div>
+      <div class="hint-text">Not sure? A common starting point is roughly 15&times; your bodyweight in pounds for calories, and 0.8&ndash;1g of protein per pound.</div>`;
+  }
+  else if(s.step === 2 && s.mode === 'log'){
+    body = `
+      <div class="ob-title">Do you eat differently on training days?</div>
+      <div class="ob-sub">Some people eat more on days they train. If not, one target applies every day.</div>
+      <div class="ob-choices">
+        <button type="button" class="ob-choice ${s.usesTrainingDays===false?'sel':''}" data-ob="same-every-day">
+          <div class="ob-choice-t">Same every day</div>
+          <div class="ob-choice-d">One set of targets, all week.</div>
+        </button>
+        <button type="button" class="ob-choice ${s.usesTrainingDays===true?'sel':''}" data-ob="split-days">
+          <div class="ob-choice-t">Training vs rest days</div>
+          <div class="ob-choice-d">Pick which days you train on the next screen.</div>
+        </button>
+      </div>`;
+  }
+  else if(s.step === 3 || (s.step === 1 && s.mode === 'plan')){
+    body = `
+      <div class="ob-title">Which days do you train?</div>
+      <div class="ob-sub">Tap to toggle. This sets which days use your training targets.</div>
+      ${renderDayTypePicker(s.dayTypes, 'ob')}`;
+  }
+
+  const canAdvance = onboardingCanAdvance();
+  return `
+    <div class="onboard-wrap">
+      <div class="ob-progress">Step ${Math.min(s.step+1,total)} of ${total}</div>
+      <div class="ob-card">
+        ${body}
+        <div class="ob-actions">
+          ${s.step > 0 ? `<button type="button" class="btn-ghost" data-ob="back">Back</button>` : ''}
+          <button type="button" class="btn-primary" data-ob="next" ${canAdvance?'':'disabled'}>${onboardingIsLastStep() ? 'Finish' : 'Continue'}</button>
+        </div>
+      </div>
+    </div>`;
+}
+function renderDayTypePicker(dayTypes, prefix){
+  const labels = ['S','M','T','W','T','F','S'];
+  const full = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  return `<div class="daytype-picker">${dayTypes.map((t,i)=>`
+    <button type="button" class="daytype-btn ${t==='training'?'training':'rest'}"
+            data-${prefix}="daytype" data-idx="${i}" aria-label="${full[i]}: ${t==='training'?'training day':'rest day'}">
+      <span class="dt-day">${labels[i]}</span>
+      <span class="dt-state">${t==='training'?'Train':'Rest'}</span>
+    </button>`).join('')}</div>`;
+}
+function onboardingIsLastStep(){
+  const s = onboardState;
+  if(s.mode === 'plan') return s.step === 1;
+  if(s.mode === 'log') return s.step === 3 || (s.step === 2 && s.usesTrainingDays === false);
+  return false;
+}
+function onboardingCanAdvance(){
+  const s = onboardState;
+  if(s.step === 0) return !!s.mode;
+  if(s.step === 1 && s.mode === 'log'){
+    return clamp0(parseFloat(s.targets.kcal)) > 0;
+  }
+  if(s.step === 2 && s.mode === 'log') return s.usesTrainingDays !== null;
+  return true;
+}
+function onboardingNextStep(){
+  const s = onboardState;
+  if(s.mode === 'plan'){ s.step = 1; return; }
+  if(s.step === 0){ s.step = 1; return; }
+  if(s.step === 1){ s.step = 2; return; }
+  if(s.step === 2){ s.step = 3; return; }
+}
+async function finishOnboarding(){
+  const s = onboardState;
+  const prof = meta.profile;
+  if(s.mode === 'plan'){
+    prof.templates = { training: deepClone(DEFAULT_TRAINING_TEMPLATE), rest: deepClone(DEFAULT_REST_TEMPLATE) };
+    prof.targetsMode = 'auto';
+    prof.dayTypes = s.dayTypes.slice();
+  }else{
+    const t = {
+      kcal: clamp0(parseFloat(s.targets.kcal)),
+      p: clamp0(parseFloat(s.targets.p)),
+      c: clamp0(parseFloat(s.targets.c)),
+      f: clamp0(parseFloat(s.targets.f)),
+    };
+    prof.templates = { training: emptyDayTemplate(), rest: emptyDayTemplate() };
+    prof.targetsMode = 'manual';
+    prof.targets = { training: {...t}, rest: {...t} };
+    prof.dayTypes = (s.usesTrainingDays === true) ? s.dayTypes.slice()
+                                                 : ['training','training','training','training','training','training','training'];
+  }
+  prof.onboarded = true;
+  onboardState = null;
+  await persistMeta();
+  render();
+}
+function attachOnboardingEvents(){
+  const wrap = document.querySelector('.onboard-wrap');
+  if(!wrap) return;
+  const s = onboardState;
+  wrap.addEventListener('click', (e)=>{
+    const el = e.target.closest('[data-ob]');
+    if(!el) return;
+    const a = el.dataset.ob;
+    if(a === 'mode-log'){ s.mode = 'log'; render(); }
+    else if(a === 'mode-plan'){ s.mode = 'plan'; render(); }
+    else if(a === 'same-every-day'){ s.usesTrainingDays = false; render(); }
+    else if(a === 'split-days'){ s.usesTrainingDays = true; render(); }
+    else if(a === 'daytype'){
+      const i = parseInt(el.dataset.idx, 10);
+      s.dayTypes[i] = s.dayTypes[i] === 'training' ? 'rest' : 'training';
+      render();
+    }
+    else if(a === 'back'){ s.step = Math.max(0, s.step - 1); render(); }
+    else if(a === 'next'){
+      if(onboardingIsLastStep()) finishOnboarding();
+      else { onboardingNextStep(); render(); }
+    }
+  });
+  ['obKcal','obP','obC','obF'].forEach((id, i)=>{
+    const key = ['kcal','p','c','f'][i];
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('input', ev=>{
+      s.targets[key] = ev.target.value;
+      const nextBtn = wrap.querySelector('[data-ob="next"]');
+      if(nextBtn) nextBtn.disabled = !onboardingCanAdvance();
+    });
+  });
+}
+
+/* ---- Plan editor (edits profile templates, not logged days) ---- */
+let planEditType = null;
+
+async function renderPlanEditorView(myToken){
+  if(myToken !== renderToken) return;
+  const type = planEditType;
+  const tpl = templateFor(type);
+  const totals = dayTotals(tpl);
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="plan-edit-head">
+      <button type="button" class="link-btn" data-action="close-plan-editor">&lsaquo; Settings</button>
+      <div class="progress-head" style="margin:0;">${type==='training'?'Training':'Rest'} day plan</div>
+      <span style="width:60px;"></span>
+    </div>
+    <main>
+      <section class="macro-panel ${type}">
+        <div class="plan-footnote" style="border:none;margin:0;padding:0;">
+          Plan total: ${totals.kcal.toFixed(0)} kcal &middot; ${totals.p.toFixed(0)}P / ${totals.c.toFixed(0)}C / ${totals.f.toFixed(0)}F
+        </div>
+      </section>
+      <section class="meal-list">
+        ${tpl.length===0 ? `<div class="empty-state"><div class="empty-title">No meals in this plan</div><div class="empty-sub">Days will start empty. Add a meal below if you want a fixed structure.</div></div>` : tpl.map((m,idx)=>{
+          const mm = mealMacros(m);
+          return `<div class="meal-card">
+            <div class="meal-info">
+              <div class="meal-name">${escapeHtml(m.name)}</div>
+              <div class="meal-macros">${mm.kcal.toFixed(0)} kcal &middot; ${mm.p.toFixed(0)}P / ${mm.c.toFixed(0)}C / ${mm.f.toFixed(0)}F</div>
+            </div>
+            <div class="meal-actions">
+              <button class="icon-btn" data-action="edit-plan-meal" data-idx="${idx}" aria-label="Edit ${escapeHtml(m.name)}">&#9998;</button>
+              <button class="icon-btn" data-action="delete-plan-meal" data-idx="${idx}" aria-label="Delete ${escapeHtml(m.name)}">&#128465;</button>
+            </div>
+          </div>`;
+        }).join('')}
+        <button class="add-meal-btn" data-action="add-plan-meal">+ Add a meal to this plan</button>
+      </section>
+    </main>
+    ${renderModalHTML()}
+    ${renderBottomNav()}
+  `;
+  if(modalState) attachModalEvents();
+}
+function savePlanMeal(idx, name, items, manualMacros){
+  const tpl = meta.profile.templates[planEditType];
+  if(idx === null || idx === undefined){
+    tpl.push({id:'plan-'+Date.now(), name, items, manualMacros: manualMacros||null});
+  }else{
+    tpl[idx].name = name;
+    tpl[idx].items = items;
+    tpl[idx].manualMacros = manualMacros || null;
+  }
+  persistMeta();
+  render();
+}
+function deletePlanMeal(idx){
+  meta.profile.templates[planEditType].splice(idx, 1);
+  persistMeta();
+  render();
 }
 
 /* ---- Body log (weight / InBody) ---- */
@@ -1551,6 +2234,13 @@ document.getElementById('app').addEventListener('click', (e)=>{
     if(confirm('Reset this day back to the standard plan? Any edits for this day will be lost.')) resetDay(key, currentDate);
   }
   else if(action==='backup'){ downloadBackup(); }
+  else if(action==='delete-food'){ if(confirm('Delete this food from your library?')) deleteCustomFood(el.dataset.id); }
+  else if(action==='edit-plan'){ planEditType = el.dataset.type; currentView='planedit'; render(); }
+  else if(action==='close-plan-editor'){ currentView='settings'; render(); }
+  else if(action==='add-plan-meal'){ openPlanMealModal(null); }
+  else if(action==='edit-plan-meal'){ openPlanMealModal(parseInt(el.dataset.idx,10)); }
+  else if(action==='delete-plan-meal'){ if(confirm('Remove this meal from the plan?')) deletePlanMeal(parseInt(el.dataset.idx,10)); }
+  else if(action==='rerun-onboarding'){ if(confirm('Run setup again? Your logged days and foods are kept.')){ meta.profile.onboarded=false; persistMeta(); onboardState=null; render(); } }
   else if(action==='import'){ document.getElementById('importFileInput').click(); }
   else if(action==='toggle-check'){ toggleChecked(key, el.dataset.id); }
   else if(action==='toggle-lifting'){ toggleTraining(key, 'liftingDone'); }
@@ -1628,6 +2318,9 @@ if(isIOS() && !isStandalone()){
 }
 
 function handleShortcutAction(){
+  // Shortcuts must not fire over the setup flow — the app has no plan or
+  // targets yet, so opening the add-meal modal there would be meaningless.
+  if(meta && meta.profile && !meta.profile.onboarded) return;
   const params = new URLSearchParams(window.location.search);
   const action = params.get('action');
   if(action === 'addmeal'){ openAddMeal(); }
@@ -1639,6 +2332,7 @@ function handleShortcutAction(){
 /* ===================== INIT ===================== */
 (async function init(){
   try{
+    loadBundledFoodDb();
     const loadedMeta = await loadDataKey(META_KEY);
     const result = migrateMeta(loadedMeta);
     meta = result.meta;
