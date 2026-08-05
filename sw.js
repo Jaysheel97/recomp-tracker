@@ -1,4 +1,4 @@
-const CACHE_NAME = 'recomp-tracker-v3';
+const CACHE_NAME = 'recomp-tracker-v5';
 const ASSETS = [
   './index.html',
   './manifest.json',

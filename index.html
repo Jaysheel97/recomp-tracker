@@ -13,44 +13,55 @@
 <meta name="apple-mobile-web-app-title" content="Recomp">
 <style>
 :root{
-  --bg:#15171b; --surface:#1e2126; --surface-2:#262a31; --border:#33383f;
-  --text:#ededea; --text-muted:#8a8f98;
-  --training:#e4572e; --training-dim:rgba(228,87,46,.14);
-  --rest:#5b8aa6; --rest-dim:rgba(91,138,166,.14);
+  /* Palette: deep instrument-panel blues rather than neutral greys, so the
+     readout colours (ivory, green, amber, plum) sit on a cool ground and stay
+     legible in a dim gym or a bright kitchen. */
+  --bg:#101318; --bg-2:#0c0f13;
+  --surface:#171b22; --surface-2:#1f242d; --surface-3:#262c37;
+  --border:#2b323d; --border-soft:#232932;
+  --text:#eef1f5; --text-muted:#8b95a5; --text-faint:#5d6675;
+  --training:#e4572e; --training-dim:rgba(228,87,46,.13);
+  --rest:#5b93b8; --rest-dim:rgba(91,147,184,.13);
   --protein:#4fa37d; --carbs:#d9a441; --fat:#b97bc4; --kcal:#f0dfc0;
-  --danger:#d9534f;
+  --over:#e4572e; --danger:#d9534f;
+  --track:#232932; --ghost:#2f3947; --tick:#4a5566;
   --font-serif:ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif;
   --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,Roboto,sans-serif;
   --font-mono:ui-monospace,'SF Mono','Cascadia Code','Roboto Mono',Consolas,monospace;
-  --radius:10px;
+  --radius:14px; --radius-sm:9px;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 8px 24px -12px rgba(0,0,0,.6);
+  --ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;-webkit-font-smoothing:antialiased;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(120% 60% at 50% 0%, #161b23 0%, var(--bg) 46%, var(--bg-2) 100%);
+  background-attachment:fixed;}
 button{font-family:var(--font-sans);}
 button:focus-visible, input:focus-visible, select:focus-visible{outline:2px solid var(--training);outline-offset:2px;}
 .app{max-width:560px;margin:0 auto;padding:16px 16px 72px;min-height:100vh;}
 
-.brand-strip{font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--text-muted);text-align:center;margin-bottom:14px;text-transform:uppercase;}
+.brand-strip{font-family:var(--font-mono);font-size:10px;letter-spacing:2.6px;color:var(--text-faint);text-align:center;margin-bottom:14px;text-transform:uppercase;}
 .loading-state{text-align:center;padding:90px 20px;color:var(--text-muted);font-family:var(--font-mono);}
 
 /* Header */
 .app-header{padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:20px;}
 .date-nav{display:flex;align-items:center;justify-content:center;gap:16px;}
-.nav-btn{background:none;border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;transition:background .15s,border-color .15s;line-height:1;}
-.nav-btn:hover{background:var(--surface-2);}
+.nav-btn{background:var(--surface);border:1px solid var(--border-soft);color:var(--text-muted);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;transition:background .16s var(--ease),color .16s,transform .12s;line-height:1;}
+.nav-btn:active{transform:scale(.92);}
+.nav-btn:hover{background:var(--surface-2);color:var(--text);}
 .date-display{text-align:center;position:relative;min-width:190px;}
-.date-label{font-family:var(--font-serif);font-size:20px;font-weight:600;letter-spacing:.2px;}
+.date-label{font-family:var(--font-serif);font-size:21px;font-weight:600;letter-spacing:.1px;}
 .date-picker{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;border:none;}
 .header-row2{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap;}
-.pill{font-family:var(--font-mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:999px;font-weight:600;}
+.pill{font-family:var(--font-mono);font-size:10px;letter-spacing:1.2px;text-transform:uppercase;padding:4px 11px;border-radius:999px;font-weight:600;}
 .pill-training{background:var(--training-dim);color:var(--training);border:1px solid var(--training);}
 .pill-rest{background:var(--rest-dim);color:var(--rest);border:1px solid var(--rest);}
 .link-btn{background:none;border:none;color:var(--text-muted);font-size:12px;text-decoration:underline;cursor:pointer;padding:2px 4px;}
 .link-btn:hover{color:var(--text);}
 
 /* Macro panel */
-.macro-panel{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;}
+.macro-panel{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--border);border-radius:var(--radius);padding:20px 18px 16px;margin-bottom:14px;box-shadow:var(--shadow);position:relative;}
 .macro-panel.training{border-top-color:var(--training);}
 .macro-panel.rest{border-top-color:var(--rest);}
 .macro-row{display:grid;grid-template-columns:66px 1fr auto;align-items:center;gap:12px;margin-bottom:14px;}
@@ -64,7 +75,7 @@ button:focus-visible, input:focus-visible, select:focus-visible{outline:2px soli
 .plan-footnote{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);text-align:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
 
 /* Weekly panel */
-.weekly-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:20px;}
+.weekly-panel{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px;box-shadow:var(--shadow);}
 .weekly-head{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:flex;justify-content:space-between;margin-bottom:10px;}
 .weekly-logged{font-family:var(--font-mono);text-transform:none;letter-spacing:0;}
 .weekly-rows{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
@@ -75,14 +86,16 @@ button:focus-visible, input:focus-visible, select:focus-visible{outline:2px soli
 
 /* Meal list */
 .meal-list{display:flex;flex-direction:column;gap:10px;}
-.empty-state{text-align:center;padding:36px 20px;color:var(--text-muted);border:1px dashed var(--border);border-radius:var(--radius);}
+.empty-state{text-align:center;padding:38px 22px;color:var(--text-muted);border:1px dashed var(--border);border-radius:var(--radius);background:linear-gradient(180deg,rgba(255,255,255,.014),transparent);}
 .empty-title{font-family:var(--font-serif);font-size:15px;color:var(--text);margin-bottom:6px;}
 .empty-sub{font-size:12px;line-height:1.5;}
-.meal-card{display:flex;align-items:flex-start;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;transition:border-color .2s;}
-.meal-card.checked{border-color:var(--protein);}
+.meal-card{display:flex;align-items:flex-start;gap:12px;background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius);padding:14px;transition:border-color .2s var(--ease),transform .12s var(--ease),background .2s;box-shadow:var(--shadow);}
+.meal-card:active{transform:scale(.995);}
+.meal-card.checked{border-color:rgba(79,163,125,.55);background:linear-gradient(180deg,rgba(79,163,125,.07),transparent 60%);}
 .meal-card.checked .meal-name{opacity:.85;}
 .check-toggle{background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;margin-top:2px;}
-.check-box{display:block;width:22px;height:22px;border-radius:6px;border:2px solid var(--border);transition:all .15s;position:relative;}
+.check-box{display:block;width:23px;height:23px;border-radius:7px;border:2px solid var(--border);transition:all .18s var(--ease);position:relative;}
+.check-toggle:active .check-box{transform:scale(.9);}
 .meal-card.checked .check-box{background:var(--protein);border-color:var(--protein);}
 .meal-card.checked .check-box::after{content:'';position:absolute;left:6px;top:2px;width:6px;height:11px;border:solid var(--bg);border-width:0 2px 2px 0;transform:rotate(45deg);}
 .meal-info{flex:1;min-width:0;}
@@ -99,7 +112,8 @@ button:focus-visible, input:focus-visible, select:focus-visible{outline:2px soli
 
 /* Modal */
 .modal-backdrop{position:fixed;inset:0;background:rgba(10,11,13,.7);display:flex;align-items:flex-end;justify-content:center;z-index:400;backdrop-filter:blur(2px);}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:20px;}
+.modal{background:var(--surface);border:1px solid var(--border);border-top-color:var(--border-soft);border-radius:20px 20px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -18px 50px -12px rgba(0,0,0,.75);animation:sheetUp .26s var(--ease);}
+@keyframes sheetUp{from{transform:translateY(22px);opacity:.6;}to{transform:none;opacity:1;}}
 .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .modal-head h3{font-family:var(--font-serif);margin:0;font-size:18px;}
 .field-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin:14px 0 6px;}
@@ -170,7 +184,7 @@ button:focus-visible, input:focus-visible, select:focus-visible{outline:2px soli
 .view-tab.active{background:var(--surface-2);color:var(--text);border-color:var(--text-muted);}
 .progress-head{font-family:var(--font-serif);font-size:22px;font-weight:600;text-align:center;margin-bottom:18px;}
 
-.body-log-panel,.training-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;}
+.body-log-panel,.training-panel{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius);padding:14px 18px;margin-bottom:14px;box-shadow:var(--shadow);}
 .panel-head{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
 .body-log-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .body-log-grid label{font-size:10px;color:var(--text-muted);display:block;margin-bottom:4px;}
@@ -178,7 +192,7 @@ button:focus-visible, input:focus-visible, select:focus-visible{outline:2px soli
 .toggle-pill{flex:1;background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);padding:10px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:600;}
 .toggle-pill.active{background:var(--protein);color:#0e1410;border-color:var(--protein);}
 
-.progress-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;}
+.progress-card{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;box-shadow:var(--shadow);}
 .weight-chart{width:100%;height:auto;display:block;}
 .chart-caption{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;}
 .inbody-row,.consistency-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
@@ -189,25 +203,72 @@ button:focus-visible, input:focus-visible, select:focus-visible{outline:2px soli
 .inbody-delta.down{color:var(--rest);}
 .consistency-note{color:var(--text-muted);font-size:11px;font-weight:400;}
 
+/* --- undo bar --- */
+.undo-bar{position:fixed;left:16px;right:16px;bottom:82px;background:var(--surface-3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;display:none;align-items:center;justify-content:space-between;gap:12px;z-index:220;box-shadow:0 10px 30px -8px rgba(0,0,0,.7);font-size:13px;}
+.undo-bar.visible{display:flex;animation:undoIn .22s var(--ease);}
+@keyframes undoIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.undo-bar button{background:none;border:none;color:var(--protein);font-weight:600;font-size:13px;cursor:pointer;padding:2px 4px;flex-shrink:0;}
+
+/* --- saved meals --- */
+.saved-strip{margin-bottom:6px;}
+.saved-strip-head{font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.5px;margin:6px 0 8px;}
+.saved-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+.saved-chip{flex-shrink:0;background:var(--surface-2);border:1px solid var(--border);border-radius:999px;padding:8px 14px;cursor:pointer;color:var(--text);display:flex;flex-direction:column;align-items:flex-start;gap:2px;transition:border-color .16s var(--ease);}
+.saved-chip:hover{border-color:var(--protein);}
+.chip-name{font-size:12px;font-weight:600;white-space:nowrap;}
+.chip-kcal{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);}
+.reuse-btn{width:100%;background:none;border:1px dashed var(--border);color:var(--text-muted);padding:10px;border-radius:var(--radius-sm);font-size:12px;cursor:pointer;margin-top:12px;transition:border-color .16s,color .16s;}
+.reuse-btn:hover:not(:disabled){border-color:var(--protein);color:var(--protein);}
+.reuse-btn:disabled{opacity:.6;cursor:default;}
+
+/* --- empty state --- */
+.empty-actions{display:flex;gap:10px;margin-top:16px;justify-content:center;}
+.empty-actions button{flex:0 1 auto;padding:9px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);}
+.empty-actions .btn-primary{background:var(--protein);color:#08120c;border-color:var(--protein);}
+.empty-actions .btn-ghost{background:none;color:var(--text-muted);}
+
+/* --- macro dial --- */
+.dial-wrap{position:relative;width:190px;margin:2px auto 4px;}
+.main-dial{width:190px;height:190px;display:block;}
+.dial-arc{transition:stroke-dasharray .55s var(--ease);}
+.dial-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+.dial-figure{font-family:var(--font-mono);font-size:38px;font-weight:600;letter-spacing:-1px;line-height:1;color:var(--kcal);}
+.dial-figure.over{color:var(--over);}
+.dial-unit{font-size:11px;color:var(--text-faint);margin-top:5px;letter-spacing:.3px;}
+.dial-remaining{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-top:7px;padding:2px 9px;border:1px solid var(--border);border-radius:999px;}
+.kcal-value{position:absolute;left:-9999px;}
+.macro-minis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px;}
+.macro-mini{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.mini-dial{width:56px;height:56px;}
+.mini-label{font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.7px;}
+.macro-mini .macro-value{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);text-align:center;min-width:0;}
+.macro-mini .macro-value.over{color:var(--over);}
+
 /* --- Phase 1a: search results, presets, bottom nav, FAB --- */
 .results-note{font-size:11px;color:var(--text-muted);padding:8px 10px;border-bottom:1px solid var(--border);}
 .ing-serving{font-size:10px;color:var(--text-muted);margin-left:6px;}
 .ing-source-tag.plan{color:var(--kcal);border-color:var(--kcal);}
 .ai-search-block{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border-top:1px dashed var(--border);background:var(--rest-dim);}
 .ai-search-label{font-size:12px;color:var(--text-muted);}
-.sel-row.has-preset{grid-template-areas:"name qty unit sub rm" "preset preset preset preset preset";}
-.sel-row.has-preset .sel-name{grid-area:name;} .sel-row.has-preset .qty-input{grid-area:qty;}
-.sel-row.has-preset .sel-unit{grid-area:unit;} .sel-row.has-preset .sel-sub{grid-area:sub;}
-.sel-row.has-preset .remove-btn{grid-area:rm;}
-.preset-row{grid-area:preset;margin-top:6px;}
-.preset-select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text-muted);padding:5px 8px;border-radius:6px;font-size:12px;}
+/* Portion row: [count] x [serving] = [quantity] */
+.sel-row-v2{background:var(--surface-2);padding:10px;border-radius:8px;}
+.sel-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.sel-head .sel-name{flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sel-head .sel-sub{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);white-space:nowrap;}
+.portion-line{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.portion-op{color:var(--text-muted);font-size:12px;flex-shrink:0;}
+.cnt-input{width:52px;flex-shrink:0;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 6px;border-radius:6px;font-family:var(--font-mono);font-size:14px;text-align:center;}
+.portion-line .qty-input{width:64px;flex-shrink:0;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 6px;border-radius:6px;font-family:var(--font-mono);font-size:14px;text-align:center;}
+.preset-select{flex:1;min-width:0;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:7px 6px;border-radius:6px;font-size:12px;}
+.portion-line .sel-unit{font-size:11px;color:var(--text-muted);flex-shrink:0;}
 
-.bottom-nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--surface);border-top:1px solid var(--border);z-index:150;padding-bottom:env(safe-area-inset-bottom);}
-.bottom-nav button{flex:1;background:none;border:none;color:var(--text-muted);padding:10px 4px 12px;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;}
-.bottom-nav button.active{color:var(--text);}
-.bottom-nav .nav-icon{font-size:17px;line-height:1;}
-.bottom-nav button.active .nav-icon{color:var(--protein);}
-.fab{position:fixed;right:18px;bottom:74px;width:54px;height:54px;border-radius:50%;background:var(--protein);color:#0e1410;border:none;font-size:28px;line-height:1;cursor:pointer;z-index:160;box-shadow:0 6px 18px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(18,22,28,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border-soft);z-index:150;padding-bottom:env(safe-area-inset-bottom);}
+.bottom-nav button{flex:1;background:none;border:none;color:var(--text-faint);padding:9px 4px 11px;font-size:10px;letter-spacing:.2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:color .18s var(--ease);}
+.bottom-nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.bottom-nav button.active{color:var(--protein);}
+
+.fab{position:fixed;right:18px;bottom:76px;width:56px;height:56px;border-radius:50%;background:linear-gradient(160deg,#5bb98d,#3f8f6a);color:#08120c;border:none;font-size:30px;font-weight:300;line-height:1;cursor:pointer;z-index:160;box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06) inset;display:flex;align-items:center;justify-content:center;transition:transform .14s var(--ease),box-shadow .18s;}
+.fab:hover{box-shadow:0 10px 26px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.1) inset;}
 .fab:active{transform:scale(.94);}
 .app{padding-bottom:120px;}
 .save-indicator{bottom:82px;}
@@ -331,7 +392,7 @@ const DEFAULT_REST_TEMPLATE = [
 const DEFAULT_DAY_TYPES = ['rest','training','training','training','training','training','rest'];
 
 /* ===================== APP DATA (profile + custom foods) ===================== */
-const CURRENT_SCHEMA = 2;
+const CURRENT_SCHEMA = 3;
 
 let meta = null; // populated by init(); shape guaranteed by migrateMeta()
 
@@ -341,6 +402,8 @@ function createDefaultMeta(){
   return {
     schemaVersion: CURRENT_SCHEMA,
     customFoods: [],
+    foodStats: {},      // foodId -> {count, last} for recent/frequent ranking
+    savedMeals: [],     // reusable meals, e.g. "my usual breakfast"
     profile: {
       createdAt: new Date().toISOString(),
       dayTypes: DEFAULT_DAY_TYPES.slice(),
@@ -398,10 +461,37 @@ function allIngredients(){
   return out;
 }
 function invalidateFoodPool(){ _poolCache = null; }
+
+/* Usage tracking powers the "recent" list. Most people rotate through a small
+   set of foods, so surfacing what they actually ate beats an alphabetical list. */
+function recordFoodUse(id){
+  if(!meta.foodStats) meta.foodStats = {};
+  const st = meta.foodStats[id] || {count:0, last:0};
+  st.count += 1;
+  st.last = Date.now();
+  meta.foodStats[id] = st;
+  persistMeta();
+}
+function recentFoods(limit){
+  const stats = meta.foodStats || {};
+  return Object.keys(stats)
+    .map(id => ({id, st: stats[id]}))
+    .sort((a,b) => b.st.last - a.st.last)
+    .map(x => ingredientById(x.id))
+    .filter(Boolean)
+    .slice(0, limit);
+}
 function ingredientById(id){ return allIngredients().find(i=>i.id===id); }
 function defaultQtyFor(ing){
   if(Array.isArray(ing.servings) && ing.servings.length) return ing.servings[0].g;
   return ing.unit === 'g' ? 100 : 1;
+}
+/* Build a fresh line item, defaulting to 1 x the food's first named serving. */
+function newItemFor(ing){
+  const hasServings = Array.isArray(ing.servings) && ing.servings.length > 0;
+  return hasServings
+    ? {ing: ing.id, qty: ing.servings[0].g, srv: 0, cnt: 1}
+    : {ing: ing.id, qty: defaultQtyFor(ing)};
 }
 /* Ranked, capped search. Rendering 800 rows is both slow and useless, so we
    rank (exact > prefix > word-prefix > substring) and cap. */
@@ -409,9 +499,16 @@ function searchFoods(query, limit){
   const q = query.trim().toLowerCase();
   const pool = allIngredients();
   if(!q){
-    // No query: show the user's own foods (plan + custom), not the whole database.
+    // No query: lead with what this person actually eats, then their plan foods.
+    const seen = new Set();
+    const out = [];
+    for(const f of recentFoods(12)){ if(!seen.has(f.id)){ seen.add(f.id); out.push(f); } }
     const custom = (meta && meta.customFoods) ? meta.customFoods : [];
-    return INGREDIENTS.concat(custom).slice(0, limit);
+    for(const f of INGREDIENTS.concat(custom)){
+      if(out.length >= limit) break;
+      if(!seen.has(f.id)){ seen.add(f.id); out.push(f); }
+    }
+    return out.slice(0, limit);
   }
   const scored = [];
   for(const item of pool){
@@ -620,6 +717,9 @@ function migrateMeta(raw){
     m.profile.targetsMode = 'auto'; migrated = true;
   }
   if(typeof m.profile.onboarded !== 'boolean'){ m.profile.onboarded = true; migrated = true; }
+  // v3 additions
+  if(!m.foodStats || typeof m.foodStats !== 'object'){ m.foodStats = {}; migrated = true; }
+  if(!Array.isArray(m.savedMeals)){ m.savedMeals = []; migrated = true; }
 
   m.schemaVersion = CURRENT_SCHEMA;
   return {meta: m, migrated, from};
@@ -722,8 +822,15 @@ function resetDay(key, date){
   const mk = monthKeyFor(date);
   const type = dayTypeFor(date);
   const tpl = templateFor(type);
+  const prev = monthCache[mk][key] ? deepClone(monthCache[mk][key]) : null;
   monthCache[mk][key] = {type, meals:cloneTemplate(tpl)};
-  persistMonth(mk); render();
+  persistMonth(mk);
+  offerUndo('Day reset to your plan', async ()=>{
+    if(prev) monthCache[mk][key] = prev;
+    await persistMonth(mk);
+    render();
+  });
+  render();
 }
 function vibrate(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
 function toggleChecked(key, mealId){
@@ -735,8 +842,16 @@ function toggleChecked(key, mealId){
 function deleteMeal(key, mealId){
   const mk = monthKeyFor(currentDate);
   const day = monthCache[mk][key];
-  day.meals = day.meals.filter(m=>m.id!==mealId);
-  persistMonth(mk); render();
+  const idx = day.meals.findIndex(m=>m.id===mealId);
+  if(idx < 0) return;
+  const removed = deepClone(day.meals[idx]);
+  day.meals.splice(idx,1);
+  persistMonth(mk);
+  offerUndo(`Removed "${removed.name}"`, async ()=>{
+    const d = monthCache[mk][key];
+    if(d){ d.meals.splice(idx, 0, removed); await persistMonth(mk); render(); }
+  });
+  render();
 }
 function saveMealEntry(key, mealId, name, items, manualMacros){
   const mk = monthKeyFor(currentDate);
@@ -943,6 +1058,7 @@ function renderHeader(date, type){
       <div class="header-row2">
         <span class="pill ${pillClass}">${pillText}</span>
         ${!isToday ? `<button class="link-btn" data-action="go-today">Today</button>` : ''}
+        <button class="link-btn" data-action="copy-yesterday">Copy yesterday</button>
         <button class="link-btn" data-action="reset-day">Reset to default</button>
       </div>
     </header>
@@ -950,32 +1066,89 @@ function renderHeader(date, type){
 }
 
 /* ===================== RENDER: MACRO PANEL ===================== */
+/* SIGNATURE ELEMENT — the macro dial.
+   The subject's world is measurement: nutrition labels, InBody printouts,
+   calibrated scales. So the day reads as an instrument gauge rather than a
+   stack of generic progress bars. Calories are the primary dial with tick
+   marks; the three macros sit beneath as smaller companion arcs. */
+function dialArc(pct, radius, stroke, color, cx, cy, trackColor){
+  const C = 2 * Math.PI * radius;
+  const p = Math.max(0, Math.min(1, pct));
+  const filled = p * C;
+  const track = `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${trackColor}" stroke-width="${stroke}"/>`;
+  // At zero, a round line cap would still paint a dot at 12 o'clock, so draw
+  // nothing at all — an untouched dial should read as genuinely empty.
+  if(filled <= 0.01) return track;
+  return track + `
+    <circle cx="${cx}" cy="${cy}" r="${radius}" fill="none" stroke="${color}" stroke-width="${stroke}"
+            stroke-linecap="round" stroke-dasharray="${filled.toFixed(2)} ${(C-filled).toFixed(2)}"
+            transform="rotate(-90 ${cx} ${cy})" class="dial-arc"/>`;
+}
+function dialTicks(cx, cy, radius){
+  // Calibration marks every 10% — the instrument cue that gives the dial its character.
+  let out = '';
+  for(let i=0;i<10;i++){
+    const a = (i/10) * Math.PI*2 - Math.PI/2;
+    const r1 = radius + 9, r2 = radius + (i % 5 === 0 ? 14 : 12);
+    const x1 = cx + Math.cos(a)*r1, y1 = cy + Math.sin(a)*r1;
+    const x2 = cx + Math.cos(a)*r2, y2 = cy + Math.sin(a)*r2;
+    out += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"
+            stroke="var(--tick)" stroke-width="${i % 5 === 0 ? 1.6 : 1}" stroke-linecap="round"/>`;
+  }
+  return out;
+}
 function renderMacroRow(r){
-  const pctEaten = Math.min(100, r.target>0 ? (r.eaten/r.target)*100 : 0);
-  const pctPlan = Math.min(100, r.target>0 ? (r.plan/r.target)*100 : 0);
-  const over = r.eaten > r.target;
-  const dec = r.key==='kcal' ? 0 : 1;
+  const pct = r.target > 0 ? r.eaten / r.target : 0;
+  const over = r.eaten > r.target * 1.001;
+  const dec = r.key === 'kcal' ? 0 : 1;
+  const R = 26, S = 6, CX = 34, CY = 34;
   return `
-    <div class="macro-row">
-      <div class="macro-label">${r.label}</div>
-      <div class="macro-bar-track">
-        <div class="macro-bar-fill" style="width:${pctEaten}%;background:${r.color};"></div>
-        <div class="macro-bar-marker" style="left:${pctPlan}%;"></div>
-      </div>
+    <div class="macro-mini">
+      <svg viewBox="0 0 68 68" class="mini-dial" aria-hidden="true">
+        ${dialArc(pct, R, S, r.color, CX, CY, 'var(--track)')}
+      </svg>
+      <div class="mini-label">${r.label}</div>
       <div class="macro-value ${over?'over':''}">${r.eaten.toFixed(dec)}${r.unit} / ${r.target.toFixed(dec)}${r.unit}</div>
-    </div>
-  `;
+    </div>`;
 }
 function renderMacroPanel(eaten, planTotal, target, type){
-  const rows = [
-    {key:'kcal', label:'Calories', unit:'', color:'var(--kcal)', eaten:eaten.kcal, plan:planTotal.kcal, target:target.kcal},
-    {key:'p', label:'Protein', unit:'g', color:'var(--protein)', eaten:eaten.p, plan:planTotal.p, target:target.p},
-    {key:'c', label:'Carbs', unit:'g', color:'var(--carbs)', eaten:eaten.c, plan:planTotal.c, target:target.c},
-    {key:'f', label:'Fat', unit:'g', color:'var(--fat)', eaten:eaten.f, plan:planTotal.f, target:target.f},
+  const kcalPct = target.kcal > 0 ? eaten.kcal / target.kcal : 0;
+  const planPct = target.kcal > 0 ? planTotal.kcal / target.kcal : 0;
+  const remaining = target.kcal - eaten.kcal;
+  const over = eaten.kcal > target.kcal * 1.001;
+
+  const macros = [
+    {key:'p', label:'Protein', unit:'g', color:'var(--protein)', eaten:eaten.p, target:target.p},
+    {key:'c', label:'Carbs',   unit:'g', color:'var(--carbs)',   eaten:eaten.c, target:target.c},
+    {key:'f', label:'Fat',     unit:'g', color:'var(--fat)',     eaten:eaten.f, target:target.f},
   ];
+
+  // Ghost arc shows where the full day's plan would land — the difference
+  // between "eaten" and "planned" is the actionable gap.
+  const R = 62, CX = 80, CY = 80;
+  const C = 2 * Math.PI * R;
+  const ghost = Math.max(0, Math.min(1, planPct)) * C;
+
   return `
     <section class="macro-panel ${type}">
-      ${rows.map(renderMacroRow).join('')}
+      <div class="dial-wrap">
+        <svg viewBox="0 0 160 160" class="main-dial" role="img" aria-label="Calories ${eaten.kcal.toFixed(0)} of ${target.kcal.toFixed(0)}">
+          ${dialTicks(CX, CY, R)}
+          <circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="var(--track)" stroke-width="10"/>
+          ${ghost > 0.01 ? `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="var(--ghost)" stroke-width="10"
+                  stroke-dasharray="${ghost.toFixed(2)} ${(C-ghost).toFixed(2)}" transform="rotate(-90 ${CX} ${CY})"/>` : ''}
+          ${dialArc(kcalPct, R, 10, over ? 'var(--over)' : 'var(--kcal)', CX, CY, 'transparent')}
+        </svg>
+        <div class="dial-center">
+          <div class="dial-figure ${over?'over':''}">${eaten.kcal.toFixed(0)}</div>
+          <div class="dial-unit">of ${target.kcal.toFixed(0)} kcal</div>
+          <div class="dial-remaining">${over ? `${Math.abs(remaining).toFixed(0)} over` : `${remaining.toFixed(0)} left`}</div>
+        </div>
+      </div>
+      <div class="macro-value kcal-value ${over?'over':''}">${eaten.kcal.toFixed(0)} / ${target.kcal.toFixed(0)}</div>
+      <div class="macro-minis">
+        ${macros.map(renderMacroRow).join('')}
+      </div>
       <div class="plan-footnote">Today&rsquo;s full plan: ${planTotal.kcal.toFixed(0)} kcal &middot; ${planTotal.p.toFixed(0)}P / ${planTotal.c.toFixed(0)}C / ${planTotal.f.toFixed(0)}F</div>
     </section>
   `;
@@ -1033,9 +1206,12 @@ function renderMealList(meals){
     return `<section class="meal-list">
       <div class="empty-state">
         <div class="empty-title">Nothing logged yet</div>
-        <div class="empty-sub">Add what you ate and your macros will fill in below.</div>
+        <div class="empty-sub">Add what you ate, or bring across the day before.</div>
+        <div class="empty-actions">
+          <button type="button" class="btn-primary" data-action="open-add-meal">Add a meal</button>
+          <button type="button" class="btn-ghost" data-action="copy-yesterday">Copy yesterday</button>
+        </div>
       </div>
-      <button class="add-meal-btn" data-action="open-add-meal">+ Add a meal</button>
     </section>`;
   }
   // No inline add button here: the floating action button is always visible,
@@ -1139,31 +1315,75 @@ function renderNewFoodForm(){
     </div>
   `;
 }
+/* Portion model: a food can be entered three ways.
+     'serving' - a count x a named serving   (2 x "1 roti (40g)" = 80g)
+     'raw'     - a direct weight             (137g)
+     'unit'    - foods with no presets; qty is already in native units (2 bananas)
+   `qty` in the food's native unit remains the single source of truth for macros,
+   so srv/cnt are only a record of how the user arrived at it and older saved
+   items without those fields keep working. */
+function itemPortion(item, ing){
+  const servings = Array.isArray(ing.servings) ? ing.servings : [];
+  if(!servings.length) return {mode:'unit'};
+  if(item.srv === null) return {mode:'raw'};
+  if(Number.isInteger(item.srv) && servings[item.srv]){
+    const g = servings[item.srv].g;
+    return {mode:'serving', srvIdx:item.srv, cnt:(item.cnt != null ? item.cnt : (g ? item.qty/g : 1))};
+  }
+  // Legacy item saved before portions existed: infer a clean serving if one fits.
+  for(let i=0;i<servings.length;i++){
+    const g = servings[i].g;
+    if(!g) continue;
+    const c = item.qty / g;
+    if(c > 0 && Math.abs(c - Math.round(c)) < 0.001) return {mode:'serving', srvIdx:i, cnt:Math.round(c)};
+  }
+  return {mode:'raw'};
+}
+function trimNum(n){
+  if(!isFinite(n)) return '0';
+  return String(Math.round(n * 100) / 100);
+}
 function renderSelectedItems(){
   if(modalState.items.length===0) return `<div class="empty-hint">No ingredients added yet.</div>`;
   return modalState.items.map((item, idx)=>{
     const ing = ingredientById(item.ing);
     if(!ing) return '';
     const m = itemMacros(item);
-    // Serving presets: picking one just sets the quantity in the food's native
-    // unit, so the stored data model is unchanged.
-    let presetHtml = '';
-    if(Array.isArray(ing.servings) && ing.servings.length){
-      const opts = ing.servings.map(s=>{
-        const sel = Math.abs(item.qty - s.g) < 0.01 ? ' selected' : '';
-        return `<option value="${s.g}"${sel}>${escapeHtml(s.label)}</option>`;
-      }).join('');
-      const custom = ing.servings.some(s=>Math.abs(item.qty - s.g) < 0.01) ? '' : '<option value="" selected>custom</option>';
-      presetHtml = `<select class="preset-select" data-idx="${idx}" aria-label="Serving size for ${escapeHtml(ing.name)}">${custom}${opts}</select>`;
+    const servings = Array.isArray(ing.servings) ? ing.servings : [];
+    const port = itemPortion(item, ing);
+
+    let controls = '';
+    if(port.mode === 'unit'){
+      controls = `
+        <div class="portion-line">
+          <input type="number" step="any" min="0" class="qty-input" data-idx="${idx}" value="${trimNum(item.qty)}" aria-label="Quantity of ${escapeHtml(ing.name)}">
+          <span class="sel-unit">${escapeHtml(ing.unitLabel)}</span>
+        </div>`;
+    }else{
+      const opts = servings.map((s,i)=>
+        `<option value="${i}"${port.mode==='serving'&&port.srvIdx===i?' selected':''}>${escapeHtml(s.label)} (${s.g}g)</option>`
+      ).join('') + `<option value="raw"${port.mode==='raw'?' selected':''}>grams</option>`;
+
+      controls = `
+        <div class="portion-line">
+          ${port.mode === 'serving' ? `
+            <input type="number" step="any" min="0" class="cnt-input" data-idx="${idx}" value="${trimNum(port.cnt)}" aria-label="How many servings of ${escapeHtml(ing.name)}">
+            <span class="portion-op">&times;</span>` : ''}
+          <select class="preset-select" data-idx="${idx}" aria-label="Serving size for ${escapeHtml(ing.name)}">${opts}</select>
+          ${port.mode === 'serving' ? `<span class="portion-op">=</span>` : ''}
+          <input type="number" step="any" min="0" class="qty-input" data-idx="${idx}" value="${trimNum(item.qty)}" aria-label="Total grams of ${escapeHtml(ing.name)}">
+          <span class="sel-unit">g</span>
+        </div>`;
     }
+
     return `
-      <div class="sel-row${presetHtml?' has-preset':''}">
-        <span class="sel-name" title="${escapeHtml(ing.name)}">${escapeHtml(ing.name)}</span>
-        <input type="number" step="any" min="0" class="qty-input" data-idx="${idx}" value="${item.qty}" aria-label="Quantity of ${escapeHtml(ing.name)}">
-        <span class="sel-unit">${ing.unitLabel}</span>
-        <span class="sel-sub" id="item-sub-${idx}">${m.kcal.toFixed(0)} kcal</span>
-        <button type="button" class="remove-btn" data-action="remove-item" data-idx="${idx}" aria-label="Remove ${escapeHtml(ing.name)}">&times;</button>
-        ${presetHtml ? `<div class="preset-row">${presetHtml}</div>` : ''}
+      <div class="sel-row-v2">
+        <div class="sel-head">
+          <span class="sel-name" title="${escapeHtml(ing.name)}">${escapeHtml(ing.name)}</span>
+          <span class="sel-sub" id="item-sub-${idx}">${m.kcal.toFixed(0)} kcal</span>
+          <button type="button" class="remove-btn" data-action="remove-item" data-idx="${idx}" aria-label="Remove ${escapeHtml(ing.name)}">&times;</button>
+        </div>
+        ${controls}
       </div>
     `;
   }).join('');
@@ -1174,6 +1394,12 @@ function computeModalTotal(){
     acc.kcal+=m.kcal; acc.p+=m.p; acc.c+=m.c; acc.f+=m.f;
     return acc;
   }, {kcal:0,p:0,c:0,f:0});
+}
+function updateReuseVisibility(){
+  const btn = document.getElementById('saveReuseBtn');
+  if(!btn || !modalState) return;
+  const hasContent = (modalState.items && modalState.items.length) || !!modalState.manualMacros;
+  btn.hidden = !hasContent;
 }
 function renderModalTotalText(){
   const t = computeModalTotal();
@@ -1200,6 +1426,7 @@ function renderQuickLogTab(){
 }
 function renderIngredientsTab(){
   return `
+    ${renderSavedMealsStrip()}
     <label class="field-label" for="ingredientSearch">Add ingredients</label>
     <input id="ingredientSearch" class="text-input" placeholder="Search ingredients&hellip;" value="${escapeHtml(modalState.search)}">
     <div id="ingredientResults" class="ing-results">${renderIngredientResults()}</div>
@@ -1232,6 +1459,7 @@ function renderModalHTML(){
         ${modalState.tab==='ingredients' ? renderIngredientsTab() : renderQuickLogTab()}
 
         <div class="save-warning" id="saveWarning">Add at least one ingredient, or enter/look up macros, before saving.</div>
+        <button type="button" class="reuse-btn" id="saveReuseBtn" data-action="save-meal-reuse" hidden>Save this as a reusable meal</button>
         <div class="modal-actions">
           <button type="button" class="btn-ghost" id="cancelMealBtn">Cancel</button>
           <button type="button" class="btn-primary" id="saveMealBtn">Save meal</button>
@@ -1245,39 +1473,92 @@ function renderModalHTML(){
 function attachSelectedItemsEvents(){
   const container = document.getElementById('selectedItems');
   if(!container) return;
+
+  // Refresh only the numbers, never the inputs themselves: rebuilding the row
+  // while someone is typing steals focus and closes the mobile keyboard.
+  const refreshNumbers = (idx)=>{
+    const m = itemMacros(modalState.items[idx]);
+    const subEl = document.getElementById(`item-sub-${idx}`);
+    if(subEl) subEl.textContent = `${m.kcal.toFixed(0)} kcal`;
+    const totalEl = document.getElementById('modalTotal');
+    if(totalEl) totalEl.innerHTML = renderModalTotalText();
+  };
+  const rebuildRows = ()=>{
+    container.innerHTML = renderSelectedItems();
+    const totalEl = document.getElementById('modalTotal');
+    if(totalEl) totalEl.innerHTML = renderModalTotalText();
+    attachSelectedItemsEvents();
+    updateReuseVisibility();
+  };
+
+  // Count of servings: 2 x "1 roti" -> qty 80g
+  container.querySelectorAll('.cnt-input').forEach(input=>{
+    input.addEventListener('input', (e)=>{
+      const idx = parseInt(e.target.dataset.idx, 10);
+      const item = modalState.items[idx];
+      const ing = ingredientById(item.ing);
+      const port = itemPortion(item, ing);
+      if(port.mode !== 'serving') return;
+      const cnt = clamp0(parseFloat(e.target.value));
+      const g = ing.servings[port.srvIdx].g;
+      item.cnt = cnt;
+      item.srv = port.srvIdx;
+      item.qty = cnt * g;
+      const qtyInput = container.querySelector(`.qty-input[data-idx="${idx}"]`);
+      if(qtyInput) qtyInput.value = trimNum(item.qty);
+      refreshNumbers(idx);
+    });
+  });
+
+  // Final quantity, always directly editable. Typing a weight keeps the chosen
+  // serving but recomputes the count, so the row stays internally consistent.
   container.querySelectorAll('.qty-input').forEach(input=>{
     input.addEventListener('input', (e)=>{
       const idx = parseInt(e.target.dataset.idx, 10);
-      modalState.items[idx].qty = clamp0(parseFloat(e.target.value));
-      const m = itemMacros(modalState.items[idx]);
-      const subEl = document.getElementById(`item-sub-${idx}`);
-      if(subEl) subEl.textContent = `${m.kcal.toFixed(0)} kcal`;
-      const totalEl = document.getElementById('modalTotal');
-      if(totalEl) totalEl.innerHTML = renderModalTotalText();
+      const item = modalState.items[idx];
+      const ing = ingredientById(item.ing);
+      item.qty = clamp0(parseFloat(e.target.value));
+      const port = itemPortion(item, ing);
+      if(port.mode === 'serving'){
+        const g = ing.servings[port.srvIdx].g;
+        if(g){
+          item.cnt = item.qty / g;
+          const cntInput = container.querySelector(`.cnt-input[data-idx="${idx}"]`);
+          if(cntInput && document.activeElement !== cntInput) cntInput.value = trimNum(item.cnt);
+        }
+      }
+      refreshNumbers(idx);
     });
   });
+
+  // Serving selector, including the "grams" escape hatch for raw weights.
   container.querySelectorAll('.preset-select').forEach(sel=>{
     sel.addEventListener('change', (e)=>{
       const idx = parseInt(e.target.dataset.idx, 10);
-      const g = parseFloat(e.target.value);
-      if(!isFinite(g)) return;
-      modalState.items[idx].qty = g;
-      const qtyInput = container.querySelector(`.qty-input[data-idx="${idx}"]`);
-      if(qtyInput) qtyInput.value = g;
-      const m = itemMacros(modalState.items[idx]);
-      const subEl = document.getElementById(`item-sub-${idx}`);
-      if(subEl) subEl.textContent = `${m.kcal.toFixed(0)} kcal`;
-      const totalEl = document.getElementById('modalTotal');
-      if(totalEl) totalEl.innerHTML = renderModalTotalText();
+      const item = modalState.items[idx];
+      const ing = ingredientById(item.ing);
+      const val = e.target.value;
+      if(val === 'raw'){
+        item.srv = null;
+        item.cnt = null;
+      }else{
+        const i = parseInt(val, 10);
+        const g = ing.servings[i] ? ing.servings[i].g : 0;
+        const prev = itemPortion(item, ing);
+        const cnt = (prev.mode === 'serving' && prev.cnt > 0) ? prev.cnt : 1;
+        item.srv = i;
+        item.cnt = cnt;
+        item.qty = cnt * g;
+      }
+      rebuildRows(); // switching mode changes which controls exist
     });
   });
+
   container.querySelectorAll('[data-action="remove-item"]').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       const idx = parseInt(e.currentTarget.dataset.idx, 10);
       modalState.items.splice(idx, 1);
-      document.getElementById('selectedItems').innerHTML = renderSelectedItems();
-      document.getElementById('modalTotal').innerHTML = renderModalTotalText();
-      attachSelectedItemsEvents();
+      rebuildRows();
     });
   });
 }
@@ -1353,7 +1634,7 @@ function attachNewFoodEvents(){
     meta.customFoods.push(newFood);
     invalidateFoodPool();
     persistMeta();
-    modalState.items.push({ing:newFood.id, qty: unit==='g' ? 100 : 1});
+    modalState.items.push(newItemFor(newFood));
     modalState.newFoodMode = false;
     modalState.newFood = defaultNewFood();
     modalState.search = '';
@@ -1440,7 +1721,7 @@ function attachModalEvents(){
           meta.customFoods.push(newFood);
           invalidateFoodPool();
           persistMeta();
-          modalState.items.push({ing:newFood.id, qty: defaultQtyFor(newFood)});
+          modalState.items.push(newItemFor(newFood));
           modalState.searchAiNote = `Added "${desc}" to your foods. ${result.data.notes || ''}`.trim();
           modalState.search = '';
         }else{
@@ -1453,19 +1734,23 @@ function attachModalEvents(){
       if(!btn) return;
       const ing = ingredientById(btn.dataset.id);
       if(!ing) return;
-      modalState.items.push({ing:ing.id, qty: defaultQtyFor(ing)});
+      modalState.items.push(newItemFor(ing));
+      recordFoodUse(ing.id);
       document.getElementById('selectedItems').innerHTML = renderSelectedItems();
       document.getElementById('modalTotal').innerHTML = renderModalTotalText();
       attachSelectedItemsEvents();
+      updateReuseVisibility();
     });
     document.getElementById('toggleNewFoodBtn').addEventListener('click', ()=>{
       modalState.newFoodMode = !modalState.newFoodMode;
       render();
     });
     attachSelectedItemsEvents();
+    updateReuseVisibility();
     if(modalState.newFoodMode) attachNewFoodEvents();
   }else{
     attachQuickLogEvents();
+    updateReuseVisibility();
   }
 
   document.getElementById('saveMealBtn').addEventListener('click', ()=>{
@@ -1586,16 +1871,22 @@ function renderErrorBoundary(err){
 
 function renderTopTabs(){ return ''; }
 
+const NAV_ICONS = {
+  today:    '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg>',
+  progress: '<svg viewBox="0 0 24 24"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16l4-5 3 3 5-7"/></svg>',
+  foods:    '<svg viewBox="0 0 24 24"><path d="M5 3v18"/><path d="M5 8h4a3 3 0 0 0 0-6H5"/><path d="M15 3v18"/><path d="M19 3v7a4 4 0 0 1-4 0V3"/></svg>',
+  settings: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
+};
 function renderBottomNav(){
   const tabs = [
-    {id:'today', icon:'&#9679;', label:'Today'},
-    {id:'progress', icon:'&#9650;', label:'Progress'},
-    {id:'foods', icon:'&#9632;', label:'Foods'},
-    {id:'settings', icon:'&#9881;', label:'Settings'},
+    {id:'today', label:'Today'},
+    {id:'progress', label:'Progress'},
+    {id:'foods', label:'Foods'},
+    {id:'settings', label:'Settings'},
   ];
   return `<nav class="bottom-nav" role="navigation">${tabs.map(t=>`
     <button type="button" class="${currentView===t.id?'active':''}" data-action="switch-view" data-view="${t.id}" aria-current="${currentView===t.id?'page':'false'}">
-      <span class="nav-icon">${t.icon}</span><span>${t.label}</span>
+      ${NAV_ICONS[t.id]}<span>${t.label}</span>
     </button>`).join('')}</nav>`;
 }
 
@@ -1650,27 +1941,31 @@ async function renderProgressView(myToken){
 
 /* ---- Foods library view ---- */
 let foodsSearch = '';
-async function renderFoodsView(myToken){
-  if(myToken !== renderToken) return;
+function renderFoodsList(){
   const results = searchFoods(foodsSearch, 60);
   const customCount = (meta.customFoods||[]).length;
+  return `
+    <div class="panel-head" style="margin-top:14px;">${foodsSearch ? `${results.length} result${results.length===1?'':'s'}` : `Your foods &middot; ${customCount} custom`}</div>
+    <div class="foods-list">
+      ${results.length===0 ? `<div class="empty-hint">No foods match. Add one from any meal&rsquo;s ingredient search.</div>` : results.map(i=>`
+        <div class="food-row">
+          <div class="food-row-main">
+            <div class="food-row-name">${escapeHtml(i.name)}${i.source==='user'?'<span class="ing-source-tag">mine</span>':''}</div>
+            <div class="food-row-meta">${ingredientMetaLabel(i)} &middot; ${i.p}P / ${i.c}C / ${i.f}F${(i.servings&&i.servings.length)?` &middot; ${escapeHtml(i.servings[0].label)}`:''}</div>
+          </div>
+          ${i.source==='user' ? `<button type="button" class="icon-btn" data-action="delete-food" data-id="${i.id}" aria-label="Delete ${escapeHtml(i.name)}">&#128465;</button>` : ''}
+        </div>`).join('')}
+    </div>`;
+}
+async function renderFoodsView(myToken){
+  if(myToken !== renderToken) return;
   const app = document.getElementById('app');
   app.innerHTML = `
     <div class="progress-head">Foods</div>
     <main>
       <section class="progress-card">
         <input id="foodsSearchInput" class="text-input" placeholder="Search ${allIngredients().length} foods&hellip;" value="${escapeHtml(foodsSearch)}">
-        <div class="panel-head" style="margin-top:14px;">${foodsSearch ? `${results.length} result${results.length===1?'':'s'}` : `Your foods &middot; ${customCount} custom`}</div>
-        <div class="foods-list">
-          ${results.length===0 ? `<div class="empty-hint">No foods match. Add one from any meal&rsquo;s ingredient search.</div>` : results.map(i=>`
-            <div class="food-row">
-              <div class="food-row-main">
-                <div class="food-row-name">${escapeHtml(i.name)}${i.source==='user'?'<span class="ing-source-tag">mine</span>':''}</div>
-                <div class="food-row-meta">${ingredientMetaLabel(i)} &middot; ${i.p}P / ${i.c}C / ${i.f}F${(i.servings&&i.servings.length)?` &middot; ${escapeHtml(i.servings[0].label)}`:''}</div>
-              </div>
-              ${i.source==='user' ? `<button type="button" class="icon-btn" data-action="delete-food" data-id="${i.id}" aria-label="Delete ${escapeHtml(i.name)}">&#128465;</button>` : ''}
-            </div>`).join('')}
-        </div>
+        <div id="foodsListWrap">${renderFoodsList()}</div>
       </section>
     </main>
     ${renderBottomNav()}
@@ -1681,14 +1976,28 @@ async function renderFoodsView(myToken){
     input.addEventListener('input', (e)=>{
       foodsSearch = e.target.value;
       clearTimeout(t);
-      t = setTimeout(()=>render(), 150);
+      // Update ONLY the results list. Re-rendering the whole view would destroy
+      // this input element, which on mobile dismisses the keyboard mid-word.
+      t = setTimeout(()=>{
+        const wrap = document.getElementById('foodsListWrap');
+        if(wrap) wrap.innerHTML = renderFoodsList();
+      }, 150);
     });
   }
 }
 function deleteCustomFood(id){
-  meta.customFoods = (meta.customFoods||[]).filter(f=>f.id !== id);
+  const idx = (meta.customFoods||[]).findIndex(f=>f.id===id);
+  if(idx < 0) return;
+  const removed = meta.customFoods[idx];
+  meta.customFoods.splice(idx,1);
   invalidateFoodPool();
   persistMeta();
+  offerUndo(`Removed "${removed.name}"`, async ()=>{
+    meta.customFoods.splice(idx, 0, removed);
+    invalidateFoodPool();
+    await persistMeta();
+    render();
+  });
   render();
 }
 
@@ -1938,6 +2247,24 @@ function onboardingNextStep(){
   if(s.step === 1){ s.step = 2; return; }
   if(s.step === 2){ s.step = 3; return; }
 }
+/* Days are materialised from the template the first time they're viewed. After
+   setup changes the plan, any day that was only ever auto-created (never
+   actually logged) is stale — it still holds the OLD plan's meals. Drop those
+   so they regenerate from the new template. Days with real data are kept. */
+async function clearUnloggedDays(){
+  const keys = await listMonthKeys();
+  for(const k of keys){
+    const mk = k.replace('dietTracker:days:', '');
+    await ensureMonthLoaded(mk);
+    const days = monthCache[mk];
+    let changed = false;
+    for(const dk of Object.keys(days)){
+      if(isDayMeaningfullyEmpty(days[dk])){ delete days[dk]; changed = true; }
+    }
+    if(changed) await persistMonth(mk);
+  }
+}
+
 async function finishOnboarding(){
   const s = onboardState;
   const prof = meta.profile;
@@ -1961,6 +2288,11 @@ async function finishOnboarding(){
   prof.onboarded = true;
   onboardState = null;
   await persistMeta();
+  await clearUnloggedDays();
+  // Setup is usually launched from Settings; finishing it should land the user
+  // on their day, not back in the settings screen they came from.
+  currentView = 'today';
+  currentDate = new Date();
   render();
 }
 function attachOnboardingEvents(){
@@ -2056,6 +2388,124 @@ function deletePlanMeal(idx){
   meta.profile.templates[planEditType].splice(idx, 1);
   persistMeta();
   render();
+}
+
+/* ---- Undo ----
+   Destructive actions keep a snapshot rather than asking for confirmation.
+   Undoing is faster than confirming, and it never blocks the common case. */
+let undoEntry = null;
+let undoTimer = null;
+
+function offerUndo(label, restoreFn){
+  undoEntry = {label, restoreFn};
+  clearTimeout(undoTimer);
+  renderUndoBar();
+  undoTimer = setTimeout(()=>{ undoEntry = null; renderUndoBar(); }, 7000);
+}
+function renderUndoBar(){
+  let el = document.getElementById('undoBar');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'undoBar';
+    el.className = 'undo-bar';
+    document.body.appendChild(el);
+  }
+  if(!undoEntry){ el.className = 'undo-bar'; el.innerHTML = ''; return; }
+  el.className = 'undo-bar visible';
+  el.innerHTML = `<span>${escapeHtml(undoEntry.label)}</span><button type="button" id="undoBtn">Undo</button>`;
+  const btn = document.getElementById('undoBtn');
+  if(btn) btn.addEventListener('click', async ()=>{
+    const fn = undoEntry && undoEntry.restoreFn;
+    undoEntry = null;
+    clearTimeout(undoTimer);
+    renderUndoBar();
+    if(fn) await fn();
+  });
+}
+
+/* ---- Copy a previous day ---- */
+async function copyDayFrom(sourceDate){
+  const srcDay = await peekDay(sourceDate);
+  if(!srcDay || !srcDay.meals.length) return false;
+  const key = dateStr(currentDate);
+  const mk = monthKeyFor(currentDate);
+  await ensureMonthLoaded(mk);
+  const prev = monthCache[mk][key] ? deepClone(monthCache[mk][key]) : null;
+  const day = await getOrInitDay(key, currentDate);
+  // Copy the food, not the ticks: what was eaten yesterday isn't eaten today.
+  day.meals = srcDay.meals.map(m=>({
+    id: 'meal-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
+    name: m.name,
+    checked: false,
+    items: deepClone(m.items || []),
+    manualMacros: m.manualMacros ? {...m.manualMacros} : null,
+  }));
+  await persistMonth(mk);
+  offerUndo('Copied a previous day', async ()=>{
+    if(prev) monthCache[mk][key] = prev; else delete monthCache[mk][key];
+    await persistMonth(mk);
+    render();
+  });
+  render();
+  return true;
+}
+
+/* ---- Saved meals ---- */
+function saveMealForReuse(name, items, manualMacros){
+  if(!meta.savedMeals) meta.savedMeals = [];
+  meta.savedMeals.push({
+    id: 'saved-' + Date.now(),
+    name: name || 'Saved meal',
+    items: deepClone(items || []),
+    manualMacros: manualMacros ? {...manualMacros} : null,
+  });
+  persistMeta();
+}
+function deleteSavedMeal(id){
+  const idx = (meta.savedMeals||[]).findIndex(m=>m.id===id);
+  if(idx < 0) return;
+  const removed = meta.savedMeals[idx];
+  meta.savedMeals.splice(idx,1);
+  persistMeta();
+  offerUndo(`Removed "${removed.name}"`, async ()=>{
+    meta.savedMeals.splice(idx, 0, removed);
+    await persistMeta();
+    render();
+  });
+  render();
+}
+
+function useSavedMeal(id){
+  const sm = (meta.savedMeals||[]).find(m=>m.id===id);
+  if(!sm || !modalState) return;
+  modalState.name = sm.name;
+  if(sm.manualMacros){
+    modalState.tab = 'quicklog';
+    modalState.manualMacros = {...sm.manualMacros};
+    modalState.items = [];
+  }else{
+    modalState.tab = 'ingredients';
+    modalState.items = deepClone(sm.items);
+    modalState.manualMacros = null;
+  }
+  render();
+}
+function renderSavedMealsStrip(){
+  const saved = meta.savedMeals || [];
+  if(!saved.length) return '';
+  return `
+    <div class="saved-strip">
+      <div class="saved-strip-head">Saved meals</div>
+      <div class="saved-chips">
+        ${saved.map(m=>{
+          const macros = mealMacros(m);
+          return `<button type="button" class="saved-chip" data-action="use-saved-meal" data-id="${m.id}">
+            <span class="chip-name">${escapeHtml(m.name)}</span>
+            <span class="chip-kcal">${macros.kcal.toFixed(0)} kcal</span>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
 }
 
 /* ---- Body log (weight / InBody) ---- */
@@ -2220,6 +2670,33 @@ function renderConsistencySection(c){
   `;
 }
 
+/* ---- Swipe left/right to move between days ----
+   A horizontal drag is the natural gesture for a date-indexed screen; the
+   thresholds keep it from firing on vertical scrolls or stray taps. */
+function attachSwipeNavigation(){
+  const app = document.getElementById('app');
+  if(!app || app.dataset.swipeBound === '1') return;
+  app.dataset.swipeBound = '1';
+  let x0 = null, y0 = null, t0 = 0;
+  app.addEventListener('touchstart', (e)=>{
+    if(e.touches.length !== 1) return;
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, {passive:true});
+  app.addEventListener('touchend', (e)=>{
+    if(x0 === null) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - x0, dy = t.clientY - y0, dt = Date.now() - t0;
+    x0 = null; y0 = null;
+    if(currentView !== 'today') return;
+    if(modalState || importPendingData) return;      // don't hijack a dialog
+    if(dt > 600) return;                              // slow drags are scrolls
+    if(Math.abs(dx) < 60 || Math.abs(dy) > 45) return;
+    currentDate.setDate(currentDate.getDate() + (dx < 0 ? 1 : -1));
+    vibrate(8);
+    render();
+  }, {passive:true});
+}
+
 /* ===================== TOP-LEVEL EVENT DELEGATION ===================== */
 document.getElementById('app').addEventListener('click', (e)=>{
   const el = e.target.closest('[data-action]');
@@ -2230,24 +2707,33 @@ document.getElementById('app').addEventListener('click', (e)=>{
   else if(action==='prev-day'){ currentDate.setDate(currentDate.getDate()-1); render(); }
   else if(action==='next-day'){ currentDate.setDate(currentDate.getDate()+1); render(); }
   else if(action==='go-today'){ currentDate = new Date(); render(); }
-  else if(action==='reset-day'){
-    if(confirm('Reset this day back to the standard plan? Any edits for this day will be lost.')) resetDay(key, currentDate);
-  }
+  else if(action==='reset-day'){ resetDay(key, currentDate); }
   else if(action==='backup'){ downloadBackup(); }
-  else if(action==='delete-food'){ if(confirm('Delete this food from your library?')) deleteCustomFood(el.dataset.id); }
+  else if(action==='delete-food'){ deleteCustomFood(el.dataset.id); }
   else if(action==='edit-plan'){ planEditType = el.dataset.type; currentView='planedit'; render(); }
   else if(action==='close-plan-editor'){ currentView='settings'; render(); }
   else if(action==='add-plan-meal'){ openPlanMealModal(null); }
   else if(action==='edit-plan-meal'){ openPlanMealModal(parseInt(el.dataset.idx,10)); }
   else if(action==='delete-plan-meal'){ if(confirm('Remove this meal from the plan?')) deletePlanMeal(parseInt(el.dataset.idx,10)); }
+  else if(action==='copy-yesterday'){
+    const y = new Date(currentDate); y.setDate(y.getDate()-1);
+    copyDayFrom(y).then(okd=>{ if(!okd) offerUndo('Nothing logged the day before', null); });
+  }
+  else if(action==='use-saved-meal'){ useSavedMeal(el.dataset.id); }
+  else if(action==='delete-saved-meal'){ deleteSavedMeal(el.dataset.id); }
+  else if(action==='save-meal-reuse'){
+    if(modalState){
+      saveMealForReuse(modalState.name.trim() || 'Saved meal', modalState.items, modalState.manualMacros);
+      const btn = document.getElementById('saveReuseBtn');
+      if(btn){ btn.textContent = 'Saved for reuse'; btn.disabled = true; }
+    }
+  }
   else if(action==='rerun-onboarding'){ if(confirm('Run setup again? Your logged days and foods are kept.')){ meta.profile.onboarded=false; persistMeta(); onboardState=null; render(); } }
   else if(action==='import'){ document.getElementById('importFileInput').click(); }
   else if(action==='toggle-check'){ toggleChecked(key, el.dataset.id); }
   else if(action==='toggle-lifting'){ toggleTraining(key, 'liftingDone'); }
   else if(action==='toggle-cardio'){ toggleTraining(key, 'cardioDone'); }
-  else if(action==='delete-meal'){
-    if(confirm('Remove this meal for today?')) deleteMeal(key, el.dataset.id);
-  }
+  else if(action==='delete-meal'){ deleteMeal(key, el.dataset.id); }
   else if(action==='edit-meal'){ openEditMeal(el.dataset.id); }
   else if(action==='open-add-meal'){ openAddMeal(); }
 });
@@ -2340,6 +2826,7 @@ function handleShortcutAction(){
     // every load — and so a later failure can't leave storage half-migrated.
     if(result.migrated) await persistMeta();
     render();
+    attachSwipeNavigation();
     handleShortcutAction();
   }catch(err){
     meta = meta || createDefaultMeta();
