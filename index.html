@@ -22,7 +22,7 @@
   --text:#eef1f5; --text-muted:#a3adbb; --text-faint:#8f99a8;
   --training:#e4572e; --training-dim:#2b1a14; --training-text:#ff8f66;
   --rest:#5b93b8; --rest-dim:#16232d; --rest-text:#8cc3e6;
-  --protein:#4fa37d; --carbs:#d9a441; --fat:#b97bc4; --kcal:#f0dfc0;
+  --protein:#4fa37d; --carbs:#d9a441; --fat:#b97bc4; --kcal:#f0dfc0; --fiber:#7fa8c9;
   --over:#e4572e; --danger:#d9534f;
   --track:#232932; --ghost:#2f3947; --tick:#4a5566;
   --font-serif:ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif;
@@ -322,9 +322,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .dial-unit{font-size:11px;color:var(--text-faint);margin-top:5px;letter-spacing:.3px;}
 .dial-remaining{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-top:7px;padding:2px 9px;border:1px solid var(--border);border-radius:999px;}
 .kcal-value{position:absolute;left:-9999px;}
-.macro-minis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px;}
+.macro-minis{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:14px;}
 .macro-mini{display:flex;flex-direction:column;align-items:center;gap:3px;}
-.mini-dial{width:56px;height:56px;}
+.mini-dial{width:50px;height:50px;}
 .mini-label{font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.7px;}
 .macro-mini .macro-value{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);text-align:center;min-width:0;}
 .macro-mini .macro-value.over{color:var(--over);}
@@ -411,30 +411,30 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 <script>
 /* ===================== BUILT-IN INGREDIENT DATABASE ===================== */
 const INGREDIENTS = [
-  {id:'tofu', name:'House Foods Extra Firm Tofu', unit:'g', per:100, unitLabel:'g', kcal:82.35, p:8.24, c:2.35, f:5.88},
-  {id:'tortilla', name:'Mission Carb Balance Tortilla', unit:'piece', per:1, unitLabel:'tortilla', kcal:70, p:6, c:17, f:2.5},
-  {id:'banana', name:'Large Banana', unit:'piece', per:1, unitLabel:'banana', kcal:121, p:1.5, c:31, f:0.4},
-  {id:'pepponion', name:'Sautéed Peppers & Onion', unit:'serving', per:1, unitLabel:'serving', kcal:45, p:1.5, c:10, f:0.3},
-  {id:'yogurt', name:'Kirkland 0% Greek Yogurt', unit:'g', per:100, unitLabel:'g', kcal:58.8, p:10, c:3.5, f:0},
-  {id:'almondmilk', name:'365 Unsweetened Almond Milk', unit:'cup', per:1, unitLabel:'cup', kcal:40, p:1, c:2, f:3},
-  {id:'blackbeans', name:'Black Beans (canned)', unit:'g', per:100, unitLabel:'g', kcal:91, p:5.9, c:16.6, f:0.4},
-  {id:'rice', name:'Cooked White Rice', unit:'g', per:100, unitLabel:'g', kcal:130, p:2.4, c:28, f:0.3},
-  {id:'oliveoil', name:'Olive Oil', unit:'tsp', per:1, unitLabel:'tsp', kcal:40, p:0, c:0, f:4.5},
-  {id:'tacoseasoning', name:'Taco Seasoning', unit:'serving', per:1, unitLabel:'serving', kcal:5, p:0.2, c:1, f:0.1},
-  {id:'chipotleseasoning', name:'Chipotle Seasoning', unit:'serving', per:1, unitLabel:'serving', kcal:10, p:0.3, c:2, f:0},
-  {id:'whey', name:'ON Gold Standard Whey', unit:'scoop', per:1, unitLabel:'scoop', kcal:120, p:24, c:3, f:1},
-  {id:'oats', name:'Dry Rolled Oats', unit:'g', per:100, unitLabel:'g', kcal:389, p:16.9, c:66.3, f:6.9},
-  {id:'eggwhite', name:'Egg White (large)', unit:'piece', per:1, unitLabel:'egg white', kcal:17, p:3.6, c:0.2, f:0.05},
-  {id:'wholeegg', name:'Whole Egg (large)', unit:'piece', per:1, unitLabel:'egg', kcal:72, p:6.3, c:0.36, f:4.8},
-  {id:'date', name:'Medjool Date', unit:'piece', per:1, unitLabel:'date', kcal:66, p:0.4, c:18, f:0},
-  {id:'sriracha', name:'TJ Sriracha', unit:'tbsp', per:1, unitLabel:'tbsp', kcal:10, p:0, c:2, f:0},
-  {id:'dkbread', name:"Dave's Killer Bread", unit:'piece', per:1, unitLabel:'slice', kcal:110, p:5, c:22, f:2},
-  {id:'apple', name:'Medium Apple', unit:'piece', per:1, unitLabel:'apple', kcal:95, p:0.5, c:25, f:0.3},
-  {id:'almond', name:'Almond', unit:'piece', per:1, unitLabel:'almond', kcal:7, p:0.26, c:0.26, f:0.6},
-  {id:'fishoil', name:'Fish Oil 1200mg', unit:'piece', per:1, unitLabel:'softgel', kcal:11, p:0, c:0, f:1.2},
-  {id:'vitacraves', name:'VitaCraves Gummy', unit:'piece', per:1, unitLabel:'gummy', kcal:7.5, p:0, c:2, f:0},
-  {id:'cottagecheese', name:'Low-Fat Cottage Cheese', unit:'g', per:100, unitLabel:'g', kcal:80, p:11.1, c:3.56, f:2.22},
-  {id:'blueberries', name:'Blueberries', unit:'g', per:100, unitLabel:'g', kcal:57, p:0.77, c:14.5, f:0.31},
+  {id:'tofu', name:'House Foods Extra Firm Tofu', unit:'g', per:100, unitLabel:'g', kcal:82.35, p:8.24, c:2.35, f:5.88, fib:1.2},
+  {id:'tortilla', name:'Mission Carb Balance Tortilla', unit:'piece', per:1, unitLabel:'tortilla', kcal:70, p:6, c:17, f:2.5, fib:12.0},
+  {id:'banana', name:'Large Banana', unit:'piece', per:1, unitLabel:'banana', kcal:121, p:1.5, c:31, f:0.4, fib:3.5},
+  {id:'pepponion', name:'Sautéed Peppers & Onion', unit:'serving', per:1, unitLabel:'serving', kcal:45, p:1.5, c:10, f:0.3, fib:2.0},
+  {id:'yogurt', name:'Kirkland 0% Greek Yogurt', unit:'g', per:100, unitLabel:'g', kcal:58.8, p:10, c:3.5, f:0, fib:0},
+  {id:'almondmilk', name:'365 Unsweetened Almond Milk', unit:'cup', per:1, unitLabel:'cup', kcal:40, p:1, c:2, f:3, fib:0.5},
+  {id:'blackbeans', name:'Black Beans (canned)', unit:'g', per:100, unitLabel:'g', kcal:91, p:5.9, c:16.6, f:0.4, fib:8.7},
+  {id:'rice', name:'Cooked White Rice', unit:'g', per:100, unitLabel:'g', kcal:130, p:2.4, c:28, f:0.3, fib:0.4},
+  {id:'oliveoil', name:'Olive Oil', unit:'tsp', per:1, unitLabel:'tsp', kcal:40, p:0, c:0, f:4.5, fib:0},
+  {id:'tacoseasoning', name:'Taco Seasoning', unit:'serving', per:1, unitLabel:'serving', kcal:5, p:0.2, c:1, f:0.1, fib:0.3},
+  {id:'chipotleseasoning', name:'Chipotle Seasoning', unit:'serving', per:1, unitLabel:'serving', kcal:10, p:0.3, c:2, f:0, fib:0.3},
+  {id:'whey', name:'ON Gold Standard Whey', unit:'scoop', per:1, unitLabel:'scoop', kcal:120, p:24, c:3, f:1, fib:0.5},
+  {id:'oats', name:'Dry Rolled Oats', unit:'g', per:100, unitLabel:'g', kcal:389, p:16.9, c:66.3, f:6.9, fib:10.6},
+  {id:'eggwhite', name:'Egg White (large)', unit:'piece', per:1, unitLabel:'egg white', kcal:17, p:3.6, c:0.2, f:0.05, fib:0},
+  {id:'wholeegg', name:'Whole Egg (large)', unit:'piece', per:1, unitLabel:'egg', kcal:72, p:6.3, c:0.36, f:4.8, fib:0},
+  {id:'date', name:'Medjool Date', unit:'piece', per:1, unitLabel:'date', kcal:66, p:0.4, c:18, f:0, fib:1.6},
+  {id:'sriracha', name:'TJ Sriracha', unit:'tbsp', per:1, unitLabel:'tbsp', kcal:10, p:0, c:2, f:0, fib:0.2},
+  {id:'dkbread', name:"Dave's Killer Bread", unit:'piece', per:1, unitLabel:'slice', kcal:110, p:5, c:22, f:2, fib:5.0},
+  {id:'apple', name:'Medium Apple', unit:'piece', per:1, unitLabel:'apple', kcal:95, p:0.5, c:25, f:0.3, fib:4.4},
+  {id:'almond', name:'Almond', unit:'piece', per:1, unitLabel:'almond', kcal:7, p:0.26, c:0.26, f:0.6, fib:0.15},
+  {id:'fishoil', name:'Fish Oil 1200mg', unit:'piece', per:1, unitLabel:'softgel', kcal:11, p:0, c:0, f:1.2, fib:0},
+  {id:'vitacraves', name:'VitaCraves Gummy', unit:'piece', per:1, unitLabel:'gummy', kcal:7.5, p:0, c:2, f:0, fib:0},
+  {id:'cottagecheese', name:'Low-Fat Cottage Cheese', unit:'g', per:100, unitLabel:'g', kcal:80, p:11.1, c:3.56, f:2.22, fib:0},
+  {id:'blueberries', name:'Blueberries', unit:'g', per:100, unitLabel:'g', kcal:57, p:0.77, c:14.5, f:0.31, fib:2.4},
 ];
 
 /* ===================== MEAL TEMPLATES ===================== */
@@ -541,6 +541,7 @@ function loadBundledFoodDb(){
     cat: row.cat,
     unit: 'g', per: 100, unitLabel: 'g',
     kcal: row.kcal, p: row.p, c: row.c, f: row.f,
+    fib: typeof row.fib === 'number' ? row.fib : 0,
     servings: Array.isArray(row.servings) ? row.servings : [],
     alias: Array.isArray(row.alias) ? row.alias : null,
     dens: liquidDensityFor(row.name, row.cat),   // non-null => measurable in ml
@@ -663,24 +664,26 @@ function templateFor(type){
 /* ===================== MACRO MATH ===================== */
 function itemMacros(item){
   const ing = ingredientById(item.ing);
-  if(!ing) return {kcal:0,p:0,c:0,f:0};
+  if(!ing) return {kcal:0,p:0,c:0,f:0,fib:0};
   const factor = item.qty / ing.per;
-  return {kcal:ing.kcal*factor, p:ing.p*factor, c:ing.c*factor, f:ing.f*factor};
+  return {kcal:ing.kcal*factor, p:ing.p*factor, c:ing.c*factor, f:ing.f*factor,
+          fib:(ing.fib||0)*factor};
 }
 function mealMacros(meal){
-  if(meal.manualMacros) return {kcal:meal.manualMacros.kcal, p:meal.manualMacros.p, c:meal.manualMacros.c, f:meal.manualMacros.f};
+  if(meal.manualMacros) return {kcal:meal.manualMacros.kcal, p:meal.manualMacros.p,
+    c:meal.manualMacros.c, f:meal.manualMacros.f, fib:meal.manualMacros.fib||0};
   return meal.items.reduce((acc,item)=>{
     const m = itemMacros(item);
-    acc.kcal+=m.kcal; acc.p+=m.p; acc.c+=m.c; acc.f+=m.f;
+    acc.kcal+=m.kcal; acc.p+=m.p; acc.c+=m.c; acc.f+=m.f; acc.fib+=m.fib;
     return acc;
-  }, {kcal:0,p:0,c:0,f:0});
+  }, {kcal:0,p:0,c:0,f:0,fib:0});
 }
 function dayTotals(meals){
   return meals.reduce((acc,meal)=>{
     const m = mealMacros(meal);
-    acc.kcal+=m.kcal; acc.p+=m.p; acc.c+=m.c; acc.f+=m.f;
+    acc.kcal+=m.kcal; acc.p+=m.p; acc.c+=m.c; acc.f+=m.f; acc.fib+=(m.fib||0);
     return acc;
-  }, {kcal:0,p:0,c:0,f:0});
+  }, {kcal:0,p:0,c:0,f:0,fib:0});
 }
 function checkedTotals(meals){ return dayTotals(meals.filter(m=>m.checked)); }
 function dayHasAnyChecked(meals){ return meals.some(m=>m.checked); }
@@ -689,6 +692,10 @@ function dayHasAnyChecked(meals){ return meals.some(m=>m.checked); }
    - 'auto': totals of the user's own template (plan-first, e.g. a fixed diet)
    - 'manual': explicit numbers the user set (log-first, e.g. a new user)
    Callers must use targetFor(type) rather than any module-level constant. */
+const FIBER_PER_1000_KCAL = 14;   // Institute of Medicine adequate-intake basis
+function fiberTargetFor(target){
+  return Math.round((target.kcal / 1000) * FIBER_PER_1000_KCAL);
+}
 function targetFor(type){
   const prof = meta.profile;
   if(prof.targetsMode === 'manual'){
@@ -1055,8 +1062,8 @@ const CUISINE_HINT = [
 async function aiLookupMacros(description, mode){
   const shared = `You are a nutrition estimation assistant inside a diet-tracking app.\n${CUISINE_HINT}`;
   const systemPrompt = mode === 'per100g'
-    ? `${shared}\nGiven a food name, estimate its nutrition PER 100 GRAMS of the food as normally served (not per serving). Respond with ONLY a raw JSON object, no markdown fences and no prose, with exactly these keys: kcal, p, c, f (all numbers, per 100g), serving_grams (typical single-serving weight in grams, a number), notes (one short sentence naming the dish you assumed).`
-    : `${shared}\nGiven a description of a meal someone ate (which may include a quantity such as "250g", "1 katori" or "2 rotli"), estimate the TOTAL nutrition for that entire described portion, not per 100g. Respond with ONLY a raw JSON object, no markdown fences and no prose, with exactly these keys: kcal, p, c, f (numbers, totals for the whole described meal), notes (one short sentence naming the dish and portion you assumed).`;
+    ? `${shared}\nGiven a food name, estimate its nutrition PER 100 GRAMS of the food as normally served (not per serving). Respond with ONLY a raw JSON object, no markdown fences and no prose, with exactly these keys: kcal, p, c, f, fiber (all numbers, per 100g), serving_grams (typical single-serving weight in grams, a number), notes (one short sentence naming the dish you assumed).`
+    : `${shared}\nGiven a description of a meal someone ate (which may include a quantity such as "250g", "1 katori" or "2 rotli"), estimate the TOTAL nutrition for that entire described portion, not per 100g. Respond with ONLY a raw JSON object, no markdown fences and no prose, with exactly these keys: kcal, p, c, f, fiber (numbers, totals for the whole described meal), notes (one short sentence naming the dish and portion you assumed).`;
 
   async function attempt(userText){
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1300,6 +1307,7 @@ function renderMacroPanel(eaten, planTotal, target, type){
     {key:'p', label:'Protein', unit:'g', color:'var(--protein)', eaten:eaten.p, target:target.p},
     {key:'c', label:'Carbs',   unit:'g', color:'var(--carbs)',   eaten:eaten.c, target:target.c},
     {key:'f', label:'Fat',     unit:'g', color:'var(--fat)',     eaten:eaten.f, target:target.f},
+    {key:'fib', label:'Fiber', unit:'g', color:'var(--fiber)',   eaten:eaten.fib||0, target:fiberTargetFor(target)},
   ];
 
   // Ghost arc shows where the full day's plan would land — the difference
@@ -1402,7 +1410,7 @@ function renderMealList(meals){
 
 /* ===================== RENDER: MODAL ===================== */
 function defaultNewFood(){
-  return {name:'', unit:'g', unitLabel:'', servingGrams:'', kcal:'', p:'', c:'', f:'', lookupDesc:'', lookupStatus:'idle', lookupNote:'', lookupError:'', conversionWarning:''};
+  return {name:'', unit:'g', unitLabel:'', servingGrams:'', kcal:'', p:'', c:'', f:'', fib:'', lookupDesc:'', lookupStatus:'idle', lookupNote:'', lookupError:'', conversionWarning:''};
 }
 const SEARCH_LIMIT = 40;
 function renderIngredientResults(){
@@ -1492,6 +1500,7 @@ function renderNewFoodForm(){
         <div><label>Protein (g)</label><input id="newFoodP" type="number" step="any" class="text-input" value="${escapeHtml(nf.p)}"></div>
         <div><label>Carbs (g)</label><input id="newFoodC" type="number" step="any" class="text-input" value="${escapeHtml(nf.c)}"></div>
         <div><label>Fat (g)</label><input id="newFoodF" type="number" step="any" class="text-input" value="${escapeHtml(nf.f)}"></div>
+        <div><label>Fiber (g)</label><input id="newFoodFib" type="number" step="any" class="text-input" value="${escapeHtml(nf.fib)}"></div>
       </div>
       ${nf.conversionWarning ? `<div class="lookup-status error">${escapeHtml(nf.conversionWarning)}</div>` : ''}
       <div class="hint-text">${nf.unit==='g' ? 'Values above are per 100g.' : 'Values above are per single unit (e.g. per 1 roti).'}</div>
@@ -1625,6 +1634,7 @@ function renderQuickLogTab(){
       <div><label>Protein (g)</label><input id="quickP" type="number" step="any" class="text-input" value="${mm.p}"></div>
       <div><label>Carbs (g)</label><input id="quickC" type="number" step="any" class="text-input" value="${mm.c}"></div>
       <div><label>Fat (g)</label><input id="quickF" type="number" step="any" class="text-input" value="${mm.f}"></div>
+      <div><label>Fiber (g)</label><input id="quickFib" type="number" step="any" class="text-input" value="${mm.fib||''}"></div>
     </div>
     <div class="hint-text">Use AI lookup for a quick estimate, or just type the numbers yourself — either way, review before saving.</div>
   `;
@@ -1790,7 +1800,7 @@ function attachNewFoodEvents(){
       const hasValidServing = isFinite(sg) && sg > 0;
       if(hasValidServing){
         const factor = (oldUnit==='g' && newUnit==='piece') ? (sg/100) : (100/sg);
-        ['kcal','p','c','f'].forEach(k=>{
+        ['kcal','p','c','f','fib'].forEach(k=>{
           const val = parseFloat(modalState.newFood[k]);
           if(isFinite(val)) modalState.newFood[k] = String(Math.round(val*factor*100)/100);
         });
@@ -1808,6 +1818,8 @@ function attachNewFoodEvents(){
   document.getElementById('newFoodP').addEventListener('input', e=>{ modalState.newFood.p = e.target.value; });
   document.getElementById('newFoodC').addEventListener('input', e=>{ modalState.newFood.c = e.target.value; });
   document.getElementById('newFoodF').addEventListener('input', e=>{ modalState.newFood.f = e.target.value; });
+  const nfFib = document.getElementById('newFoodFib');
+  if(nfFib) nfFib.addEventListener('input', e=>{ modalState.newFood.fib = e.target.value; });
   document.getElementById('cancelNewFoodBtn').addEventListener('click', ()=>{ modalState.newFoodMode = false; render(); });
   document.getElementById('newFoodLookupBtn').addEventListener('click', async ()=>{
     const desc = modalState.newFood.lookupDesc.trim() || modalState.newFood.name.trim();
@@ -1820,6 +1832,7 @@ function attachNewFoodEvents(){
       modalState.newFood.p = String(result.data.p);
       modalState.newFood.c = String(result.data.c);
       modalState.newFood.f = String(result.data.f);
+      if(typeof result.data.fiber === 'number') modalState.newFood.fib = String(result.data.fiber);
       modalState.newFood.unit = 'g';
       modalState.newFood.servingGrams = result.data.serving_grams ? String(result.data.serving_grams) : modalState.newFood.servingGrams;
       modalState.newFood.conversionWarning = '';
@@ -1844,6 +1857,7 @@ function attachNewFoodEvents(){
       id:'custom-'+Date.now(), name, unit, per, unitLabel,
       dens: unit === 'g' ? liquidDensityFor(name, '') : null,
       kcal:clamp0(parseFloat(nf.kcal)), p:clamp0(parseFloat(nf.p)), c:clamp0(parseFloat(nf.c)), f:clamp0(parseFloat(nf.f)),
+      fib:clamp0(parseFloat(nf.fib)),
       source:'user'
     };
     meta.customFoods.push(newFood);
@@ -1860,10 +1874,10 @@ function attachQuickLogEvents(){
   const descInput = document.getElementById('quickDesc');
   if(!descInput) return;
   descInput.addEventListener('input', e=>{ modalState.name = e.target.value; });
-  ['quickKcal','quickP','quickC','quickF'].forEach((id, i)=>{
-    const key = ['kcal','p','c','f'][i];
+  ['quickKcal','quickP','quickC','quickF','quickFib'].forEach((id, i)=>{
+    const key = ['kcal','p','c','f','fib'][i];
     document.getElementById(id).addEventListener('input', e=>{
-      if(!modalState.manualMacros) modalState.manualMacros = {kcal:0,p:0,c:0,f:0};
+      if(!modalState.manualMacros) modalState.manualMacros = {kcal:0,p:0,c:0,f:0,fib:0};
       modalState.manualMacros[key] = clamp0(parseFloat(e.target.value));
     });
   });
@@ -1874,7 +1888,7 @@ function attachQuickLogEvents(){
     const result = await aiLookupMacros(desc, 'total');
     if(!modalState) return;
     if(result.ok){
-      modalState.manualMacros = {kcal:result.data.kcal, p:result.data.p, c:result.data.c, f:result.data.f};
+      modalState.manualMacros = {kcal:result.data.kcal, p:result.data.p, c:result.data.c, f:result.data.f, fib:result.data.fiber||0};
       modalState.quickLookupStatus = 'idle';
       modalState.quickLookupNote = result.data.notes || '';
     }else{
@@ -1984,6 +1998,7 @@ function attachModalEvents(){
             dens: liquidDensityFor(desc, ''),
             kcal: clamp0(result.data.kcal), p: clamp0(result.data.p),
             c: clamp0(result.data.c), f: clamp0(result.data.f),
+            fib: clamp0(result.data.fiber),
             servings: (isFinite(sg) && sg > 0) ? [{label:`1 serving (${Math.round(sg)}g)`, g:Math.round(sg)}] : [],
             source: 'user',
           };
@@ -2322,6 +2337,7 @@ function renderFoodEditor(){
           <div><label for="feP">Protein (g)</label><input id="feP" type="number" step="any" class="text-input" value="${escapeHtml(st.p)}"></div>
           <div><label for="feC">Carbs (g)</label><input id="feC" type="number" step="any" class="text-input" value="${escapeHtml(st.c)}"></div>
           <div><label for="feF">Fat (g)</label><input id="feF" type="number" step="any" class="text-input" value="${escapeHtml(st.f)}"></div>
+          <div><label for="feFib">Fiber (g)</label><input id="feFib" type="number" step="any" class="text-input" value="${escapeHtml(st.fib)}"></div>
         </div>
 
         ${st.unit === 'g' ? `
@@ -2353,7 +2369,7 @@ function attachFoodEditorEvents(){
   backdrop.addEventListener('click', e=>{ if(e.target===backdrop) close(); });
 
   const bind = (id, key)=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', e=>{ st[key]=e.target.value; }); };
-  bind('feName','name'); bind('feKcal','kcal'); bind('feP','p'); bind('feC','c'); bind('feF','f');
+  bind('feName','name'); bind('feKcal','kcal'); bind('feP','p'); bind('feC','c'); bind('feF','f'); bind('feFib','fib');
   bind('feServingLabel','servingLabel'); bind('feServingGrams','servingGrams');
   const liq = document.getElementById('feLiquid');
   if(liq) liq.addEventListener('change', e=>{ st.isLiquid = e.target.checked; });
@@ -2369,6 +2385,7 @@ function attachFoodEditorEvents(){
     food.p = clamp0(parseFloat(st.p));
     food.c = clamp0(parseFloat(st.c));
     food.f = clamp0(parseFloat(st.f));
+    food.fib = clamp0(parseFloat(st.fib));
     if(st.unit === 'g'){
       const g = clamp0(parseFloat(st.servingGrams));
       food.servings = (g > 0)
