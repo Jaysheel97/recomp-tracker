@@ -2575,11 +2575,12 @@ function renderSettingsSections(){
       <label class="field-label" for="aiApiKeyInput">Anthropic API key</label>
       <div class="lookup-row">
         <input type="password" id="aiApiKeyInput" class="text-input" autocomplete="off" spellcheck="false"
-               value="${escapeHtml(prof.aiApiKey||'')}" placeholder="sk-ant-...">
+               value="" placeholder="${prof.aiApiKey ? 'Saved — enter a new key to replace it' : 'sk-ant-...'}">
         <button type="button" class="lookup-btn" id="aiApiKeySaveBtn" disabled>Save</button>
       </div>
       <div class="lookup-status" id="aiApiKeyStatus">${prof.aiApiKey ? 'Key saved on this device.' : 'No key saved &mdash; AI lookup is off.'}</div>
-      <div class="hint-text">Powers "Look up with AI" when a food isn&rsquo;t in the database. Stored only on this device, sent only to Anthropic&rsquo;s API when you look something up &mdash; paste in the key you were given (the same key works on everyone&rsquo;s device).</div>
+      ${prof.aiApiKey ? `<button type="button" class="link-btn" id="aiApiKeyRemoveBtn" style="padding-left:0;">Remove saved key</button>` : ''}
+      <div class="hint-text">Powers "Look up with AI" when a food isn&rsquo;t in the database. Stored only on this device, sent only to Anthropic&rsquo;s API when you look something up &mdash; paste in the key you were given (the same key works on everyone&rsquo;s device). Once saved, the key clears from this field so it can&rsquo;t be read or copied back out here.</div>
     </section>
 
     <section class="progress-card">
@@ -2606,19 +2607,31 @@ function attachSettingsEvents(){
   }
   const aiKeyInput = document.getElementById('aiApiKeyInput');
   const aiKeySaveBtn = document.getElementById('aiApiKeySaveBtn');
+  const aiKeyRemoveBtn = document.getElementById('aiApiKeyRemoveBtn');
   if(aiKeyInput && aiKeySaveBtn){
-    // Explicit save only -- no autosave on blur. The user types/pastes a key,
-    // clicks Save, gets a confirmation, and is done; nothing saves silently.
-    const savedKey = meta.profile.aiApiKey || '';
-    const syncSaveBtn = ()=>{ aiKeySaveBtn.disabled = aiKeyInput.value.trim() === savedKey; };
+    // Explicit save only -- no autosave on blur. The field never shows a saved
+    // key back: after Save, we persist it and clear the input immediately so
+    // it can't just sit there (or be selected/copied) on a shared device.
+    const syncSaveBtn = ()=>{ aiKeySaveBtn.disabled = aiKeyInput.value.trim() === ''; };
     aiKeyInput.addEventListener('input', syncSaveBtn);
     aiKeyInput.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter'){ e.preventDefault(); if(!aiKeySaveBtn.disabled) aiKeySaveBtn.click(); }
     });
     aiKeySaveBtn.addEventListener('click', ()=>{
-      meta.profile.aiApiKey = aiKeyInput.value.trim();
+      const val = aiKeyInput.value.trim();
+      if(!val) return;
+      meta.profile.aiApiKey = val;
       persistMeta();
+      aiKeyInput.value = '';
       aiKeyInput.blur();
+      render();
+    });
+  }
+  if(aiKeyRemoveBtn){
+    aiKeyRemoveBtn.addEventListener('click', ()=>{
+      if(!confirm('Remove the saved API key? AI lookup will turn off until you add a new one.')) return;
+      meta.profile.aiApiKey = '';
+      persistMeta();
       render();
     });
   }
