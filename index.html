@@ -2573,9 +2573,13 @@ function renderSettingsSections(){
     <section class="progress-card">
       <h2 class="panel-head">AI food lookup</h2>
       <label class="field-label" for="aiApiKeyInput">Anthropic API key</label>
-      <input type="password" id="aiApiKeyInput" class="text-input" autocomplete="off" spellcheck="false"
-             value="${escapeHtml(prof.aiApiKey||'')}" placeholder="sk-ant-...">
-      <div class="hint-text">Powers "Look up with AI" when a food isn&rsquo;t in the database. Stored only on this device, sent only to Anthropic&rsquo;s API when you look something up &mdash; paste in the key you were given (the same key works on everyone&rsquo;s device). Without one, AI lookup stays off.</div>
+      <div class="lookup-row">
+        <input type="password" id="aiApiKeyInput" class="text-input" autocomplete="off" spellcheck="false"
+               value="${escapeHtml(prof.aiApiKey||'')}" placeholder="sk-ant-...">
+        <button type="button" class="lookup-btn" id="aiApiKeySaveBtn" disabled>Save</button>
+      </div>
+      <div class="lookup-status" id="aiApiKeyStatus">${prof.aiApiKey ? 'Key saved on this device.' : 'No key saved &mdash; AI lookup is off.'}</div>
+      <div class="hint-text">Powers "Look up with AI" when a food isn&rsquo;t in the database. Stored only on this device, sent only to Anthropic&rsquo;s API when you look something up &mdash; paste in the key you were given (the same key works on everyone&rsquo;s device).</div>
     </section>
 
     <section class="progress-card">
@@ -2601,10 +2605,23 @@ function attachSettingsEvents(){
     });
   }
   const aiKeyInput = document.getElementById('aiApiKeyInput');
-  if(aiKeyInput) aiKeyInput.addEventListener('change', (e)=>{
-    meta.profile.aiApiKey = e.target.value.trim();
-    persistMeta();
-  });
+  const aiKeySaveBtn = document.getElementById('aiApiKeySaveBtn');
+  if(aiKeyInput && aiKeySaveBtn){
+    // Explicit save only -- no autosave on blur. The user types/pastes a key,
+    // clicks Save, gets a confirmation, and is done; nothing saves silently.
+    const savedKey = meta.profile.aiApiKey || '';
+    const syncSaveBtn = ()=>{ aiKeySaveBtn.disabled = aiKeyInput.value.trim() === savedKey; };
+    aiKeyInput.addEventListener('input', syncSaveBtn);
+    aiKeyInput.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){ e.preventDefault(); if(!aiKeySaveBtn.disabled) aiKeySaveBtn.click(); }
+    });
+    aiKeySaveBtn.addEventListener('click', ()=>{
+      meta.profile.aiApiKey = aiKeyInput.value.trim();
+      persistMeta();
+      aiKeyInput.blur();
+      render();
+    });
+  }
   const modeSel = document.getElementById('targetsModeSelect');
   if(modeSel) modeSel.addEventListener('change', (e)=>{
     const mode = e.target.value;
