@@ -7,35 +7,37 @@
 <script src="foods-db.js"></script>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
-<meta name="theme-color" content="#15171b">
+<meta name="theme-color" content="#12151b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Recomp">
 <style>
 :root{
-  /* Palette: deep instrument-panel blues rather than neutral greys, so the
-     readout colours (ivory, green, amber, plum) sit on a cool ground and stay
-     legible in a dim gym or a bright kitchen. */
-  --bg:#101318; --bg-2:#0c0f13;
-  --surface:#171b22; --surface-2:#1f242d; --surface-3:#262c37;
-  --border:#2b323d; --border-soft:#232932;
-  --text:#eef1f5; --text-muted:#a3adbb; --text-faint:#8f99a8;
-  --training:#e4572e; --training-dim:#2b1a14; --training-text:#ff8f66;
-  --rest:#5b93b8; --rest-dim:#16232d; --rest-text:#8cc3e6;
-  --protein:#4fa37d; --carbs:#d9a441; --fat:#b97bc4; --kcal:#f0dfc0; --fiber:#7fa8c9;
-  --over:#e4572e; --danger:#d9534f;
-  --track:#232932; --ghost:#2f3947; --tick:#4a5566;
+  /* Corrected for real-world legibility: the previous steps between page,
+     card, and input were 1.08-1.11:1 apart -- invisible under any ambient
+     light without maxing device brightness. These jump 2-3x further apart
+     and elevation now comes from a lighter tint (like WhatsApp's message
+     bubbles), not from shadow, since shadows can't read against near-black. */
+  --bg:#12151b; --bg-2:#0d1015;
+  --surface:#1f2430; --surface-2:#2c3344; --surface-3:#3a4257;
+  --border:#454e64; --border-soft:#333c4e;
+  --text:#f5f7fa; --text-muted:#aab4c4; --text-faint:#8f99a8;
+  --training:#ff6b3d; --training-dim:#33201a; --training-text:#ff9e73;
+  --rest:#5fa0c9; --rest-dim:#182833; --rest-text:#8cc3e6;
+  --protein:#22c58a; --carbs:#f5a623; --fat:#d661e0; --kcal:#f7e7c4; --fiber:#4db3e8;
+  --over:#ff6b3d; --danger:#f2665f;
+  --track:#333c4e; --ghost:#454e64; --tick:#5c6780;
   --font-serif:ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif;
   --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,Roboto,sans-serif;
   --font-mono:ui-monospace,'SF Mono','Cascadia Code','Roboto Mono',Consolas,monospace;
   --radius:14px; --radius-sm:9px;
-  --shadow:0 1px 2px rgba(0,0,0,.35), 0 8px 24px -12px rgba(0,0,0,.6);
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 6px 16px -8px rgba(0,0,0,.5);
   --ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;-webkit-font-smoothing:antialiased;
-  background-image:radial-gradient(120% 60% at 50% 0%, #161b23 0%, var(--bg) 46%, var(--bg-2) 100%);
+  background-image:radial-gradient(120% 60% at 50% 0%, #1a1f29 0%, var(--bg) 46%, var(--bg-2) 100%);
   background-attachment:fixed;}
 button{font-family:var(--font-sans);}
 button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--kcal);outline-offset:2px;border-radius:4px;}
@@ -353,7 +355,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .bottom-nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
 .bottom-nav button.active{color:var(--protein);}
 
-.fab{position:fixed;right:18px;bottom:76px;width:56px;height:56px;border-radius:50%;background:linear-gradient(160deg,#5bb98d,#3f8f6a);color:#08120c;border:none;font-size:30px;font-weight:300;line-height:1;cursor:pointer;z-index:160;box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06) inset;display:flex;align-items:center;justify-content:center;transition:transform .14s var(--ease),box-shadow .18s;}
+.fab{position:fixed;right:18px;bottom:76px;width:56px;height:56px;border-radius:50%;background:linear-gradient(160deg,#2fdba0,#22c58a);color:#08120c;border:none;font-size:30px;font-weight:300;line-height:1;cursor:pointer;z-index:160;box-shadow:0 8px 22px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.06) inset;display:flex;align-items:center;justify-content:center;transition:transform .14s var(--ease),box-shadow .18s;}
 .fab:hover{box-shadow:0 10px 26px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.1) inset;}
 .fab:active{transform:scale(.94);}
 .app{padding-bottom:120px;}
@@ -3460,7 +3462,7 @@ function attachSwipeNavigation(){
   if(!app || app.dataset.swipeBound === '1') return;
   app.dataset.swipeBound = '1';
 
-  let x0 = null, y0 = null, t0 = 0, tracking = false;
+  let x0 = null, y0 = null, t0 = 0, tracking = false, animating = false;
   const THRESHOLD = 60;
 
   const hint = document.createElement('div');
@@ -3478,14 +3480,51 @@ function attachSwipeNavigation(){
     hint.style.opacity = String(Math.min(1, Math.abs(dx) / THRESHOLD));
   };
   const clearHint = ()=>{ hint.className = 'swipe-hint'; hint.style.opacity = ''; };
-  const resetDrag = ()=>{
+
+  // Cancelled drag: spring back to center. This part was never the problem.
+  const springBack = ()=>{
     app.style.transition = 'transform .22s var(--ease)';
     app.style.transform = '';
-    setTimeout(()=>{ app.style.transition = ''; }, 240);
+    setTimeout(()=>{ if(!animating) app.style.transition = ''; }, 240);
   };
 
+  // Committed drag: the outgoing day finishes leaving in the SAME direction it
+  // was already moving, THEN the date changes while off-screen and invisible,
+  // THEN the incoming day slides in from the opposite edge. Previously the
+  // content was swapped mid-way through a snap-BACK-to-center animation, so the
+  // old day was still visibly animating when it suddenly became different data.
+  async function animateToDay(direction){
+    animating = true;
+    const width = app.getBoundingClientRect().width || 390;
+    const exitX = -direction * width * 1.05;
+    const enterFrom = direction * width * 1.05;
+
+    app.style.transition = 'transform .2s var(--ease), opacity .2s var(--ease)';
+    app.style.transform = `translateX(${exitX}px)`;
+    app.style.opacity = '0.55';
+    await wait(200);
+
+    currentDate.setDate(currentDate.getDate() + direction);
+    await render();
+
+    app.style.transition = 'none';
+    app.style.transform = `translateX(${enterFrom}px)`;
+    app.style.opacity = '0.55';
+    void app.offsetWidth; // force layout so the jump above isn't itself animated
+
+    app.style.transition = 'transform .24s var(--ease), opacity .24s var(--ease)';
+    app.style.transform = 'translateX(0)';
+    app.style.opacity = '1';
+    await wait(240);
+
+    app.style.transition = '';
+    app.style.transform = '';
+    app.style.opacity = '';
+    animating = false;
+  }
+
   app.addEventListener('touchstart', (e)=>{
-    if(e.touches.length !== 1) return;
+    if(e.touches.length !== 1 || animating) return;
     if(currentView !== 'today' || modalState || importPendingData) return;
     x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now(); tracking = false;
   }, {passive:true});
@@ -3511,16 +3550,16 @@ function attachSwipeNavigation(){
     const dx = t.clientX - x0, dy = t.clientY - y0, dt = Date.now() - t0;
     x0 = null; y0 = null;
     clearHint();
-    resetDrag();
-    if(currentView !== 'today' || modalState || importPendingData) return;
-    if(dt > 600) return;
-    if(Math.abs(dx) < THRESHOLD || Math.abs(dy) > 45) return;
-    currentDate.setDate(currentDate.getDate() + (dx < 0 ? 1 : -1));
-    vibrate(8);
-    render();
+    const committed = tracking && dt <= 600 && Math.abs(dx) >= THRESHOLD && Math.abs(dy) <= 45;
+    if(committed){
+      vibrate(8);
+      animateToDay(dx < 0 ? 1 : -1);
+    }else{
+      springBack();
+    }
   }, {passive:true});
 
-  app.addEventListener('touchcancel', ()=>{ x0 = null; clearHint(); resetDrag(); }, {passive:true});
+  app.addEventListener('touchcancel', ()=>{ x0 = null; clearHint(); if(!animating) springBack(); }, {passive:true});
 }
 
 /* ===================== TOP-LEVEL EVENT DELEGATION ===================== */
