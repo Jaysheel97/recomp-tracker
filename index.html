@@ -36,9 +36,15 @@
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
+/* The day-swipe transition translates content past the edge of the viewport.
+   Without a background on <html> itself and overflow containment, that split
+   second exposes the WebView/Safari canvas underneath -- which defaults to
+   black in a dark-themed standalone PWA. This is the actual source of the
+   "black screen" during swipe, not the animation logic. */
+html{background:var(--bg);overflow-x:hidden;}
 body{background:var(--bg);color:var(--text);font-family:var(--font-sans);min-height:100vh;-webkit-font-smoothing:antialiased;
   background-image:radial-gradient(120% 60% at 50% 0%, #1a1f29 0%, var(--bg) 46%, var(--bg-2) 100%);
-  background-attachment:fixed;}
+  background-attachment:fixed;overflow-x:hidden;overscroll-behavior-x:none;}
 button{font-family:var(--font-sans);}
 button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--kcal);outline-offset:2px;border-radius:4px;}
 .app{max-width:560px;margin:0 auto;padding:16px 16px 72px;min-height:100vh;}
@@ -49,7 +55,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 /* Header */
 .app-header{padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:20px;}
 .date-nav{display:flex;align-items:center;justify-content:center;gap:16px;}
-.nav-btn{background:var(--surface);border:1px solid var(--border-soft);color:var(--text-muted);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;transition:background .16s var(--ease),color .16s,transform .12s;line-height:1;}
+.nav-btn{background:var(--surface);border:1px solid var(--border-soft);color:var(--text-muted);width:44px;height:44px;border-radius:50%;font-size:18px;cursor:pointer;transition:background .16s var(--ease),color .16s,transform .12s;line-height:1;}
 .nav-btn:active{transform:scale(.92);}
 .nav-btn:hover{background:var(--surface-2);color:var(--text);}
 .date-display{text-align:center;position:relative;min-width:190px;}
@@ -95,7 +101,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .meal-card:active{transform:scale(.995);}
 .meal-card.checked{border-color:rgba(79,163,125,.55);background:linear-gradient(180deg,rgba(79,163,125,.07),transparent 60%);}
 .meal-card.checked .meal-name{opacity:.85;}
-.check-toggle{background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;margin-top:2px;}
+.check-toggle{background:none;border:none;padding:0;cursor:pointer;flex-shrink:0;margin-top:2px;position:relative;}
 .check-box{display:block;width:26px;height:26px;border-radius:7px;border:2px solid var(--border);transition:all .18s var(--ease);position:relative;}
 .check-toggle:active .check-box{transform:scale(.9);}
 .meal-card.checked .check-box{background:var(--protein);border-color:var(--protein);}
@@ -107,7 +113,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .meal-items summary{color:var(--text-muted);cursor:pointer;}
 .meal-items ul{margin:6px 0 0;padding-left:18px;color:var(--text-muted);}
 .meal-actions{display:flex;flex-direction:column;gap:6px;}
-.icon-btn{background:none;border:1px solid var(--border);color:var(--text-muted);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:13px;}
+.icon-btn{background:none;border:1px solid var(--border);color:var(--text-muted);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:13px;position:relative;}
 .icon-btn:hover{color:var(--text);border-color:var(--text-muted);}
 .add-meal-btn{background:none;border:1px dashed var(--border);color:var(--text-muted);padding:12px;border-radius:var(--radius);cursor:pointer;font-size:14px;margin-top:4px;width:100%;transition:all .15s;}
 .add-meal-btn:hover{border-color:var(--text);color:var(--text);}
@@ -153,7 +159,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .qty-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:5px 6px;border-radius:6px;font-family:var(--font-mono);font-size:13px;}
 .sel-unit{font-size:10px;color:var(--text-muted);white-space:nowrap;}
 .sel-sub{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);text-align:right;white-space:nowrap;}
-.remove-btn{background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:4px 6px;min-width:26px;min-height:26px;}
+.remove-btn{background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:4px 6px;min-width:26px;min-height:26px;position:relative;}
 .remove-btn:hover{color:var(--danger);}
 .modal-total{font-family:var(--font-mono);font-size:14px;text-align:center;padding:12px;background:var(--surface-2);border-radius:8px;margin-top:16px;}
 .modal-actions{display:flex;gap:10px;margin-top:16px;}
@@ -280,6 +286,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .swipe-hint.right{left:16px;}
 .swipe-hint.commit{color:var(--text);border-color:var(--protein);background:var(--surface-2);}
 .swipe-hint.commit .swipe-hint-label{color:var(--protein);}
+
+/* --- day-swipe stage: only the day's content lives in here, never the bottom
+   nav or FAB, so chrome never moves or flickers during navigation. Outgoing
+   and incoming panes are always both present and moving together -- there is
+   no frame in which the stage is empty. --- */
+.swipe-stage{position:relative;overflow:hidden;touch-action:pan-y;}
+.swipe-pane{width:100%;}
+
+/* --- 44px minimum touch target, without inflating any visible icon --- a
+   transparent ::after extends the tappable area past the small glyph; taps
+   landing on it still register as clicks on the button itself. --- */
+.icon-btn::after, .check-toggle::after, .remove-btn::after{content:'';position:absolute;inset:-9px;}
 
 /* --- add button press --- */
 .fab-press{transform:scale(.88);}
@@ -507,6 +525,11 @@ function createDefaultMeta(){
       waterTarget: 3000,   // ml per day
       waterUnit: 'ml',     // 'ml' | 'oz'
       onboarded: false,
+      // Bring-your-own-key: the AI macro lookup calls api.anthropic.com directly
+      // from the browser, so it needs a key the user supplies and that stays on
+      // their device (never checked into the repo, never sent anywhere but
+      // Anthropic's API). Empty until they add one in Settings.
+      aiApiKey: '',
     },
   };
 }
@@ -862,6 +885,7 @@ function migrateMeta(raw){
   if(typeof m.profile.goalRate !== 'number'){ m.profile.goalRate = -0.25; migrated = true; }
   if(typeof m.profile.waterTarget !== 'number'){ m.profile.waterTarget = 3000; migrated = true; }
   if(m.profile.waterUnit !== 'oz' && m.profile.waterUnit !== 'ml'){ m.profile.waterUnit = 'ml'; migrated = true; }
+  if(typeof m.profile.aiApiKey !== 'string'){ m.profile.aiApiKey = ''; migrated = true; }
   // v3 additions
   if(!m.foodStats || typeof m.foodStats !== 'object'){ m.foodStats = {}; migrated = true; }
   if(!Array.isArray(m.savedMeals)){ m.savedMeals = []; migrated = true; }
@@ -981,6 +1005,12 @@ function resetDay(key, date){
   render();
 }
 function vibrate(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms); }catch(e){} }
+// The CSS `@media (prefers-reduced-motion:reduce)` rule only neutralises CSS
+// transitions/animations; it has no effect on Element.animate() calls driven
+// from JS, so every WAAPI-based transition in the app checks this directly.
+function prefersReducedMotion(){
+  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 function toggleChecked(key, mealId){
   const mk = monthKeyFor(currentDate);
   const day = monthCache[mk][key];
@@ -1061,7 +1091,16 @@ const CUISINE_HINT = [
   'Never refuse and never return an error message: always produce your best numeric estimate.',
 ].join('\n');
 
+/* This calls api.anthropic.com directly from the browser -- there is no
+   backend to hold a secret key on a static GitHub Pages app. Anthropic
+   supports that (bring-your-own-key, direct-browser-access header) for
+   exactly this kind of small trusted-user tool; see Settings for where the
+   key is entered. It never leaves the device except in this request. */
+const AI_MODEL = 'claude-sonnet-5';
 async function aiLookupMacros(description, mode){
+  const apiKey = (meta.profile.aiApiKey || '').trim();
+  if(!apiKey) return {ok:false, error:'Add an Anthropic API key in Settings to use AI lookup.'};
+
   const shared = `You are a nutrition estimation assistant inside a diet-tracking app.\n${CUISINE_HINT}`;
   const systemPrompt = mode === 'per100g'
     ? `${shared}\nGiven a food name, estimate its nutrition PER 100 GRAMS of the food as normally served (not per serving). Respond with ONLY a raw JSON object, no markdown fences and no prose, with exactly these keys: kcal, p, c, f, fiber (all numbers, per 100g), serving_grams (typical single-serving weight in grams, a number), notes (one short sentence naming the dish you assumed).`
@@ -1070,10 +1109,20 @@ async function aiLookupMacros(description, mode){
   async function attempt(userText){
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:500, system:systemPrompt, messages:[{role:'user', content:userText}] })
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        // Anthropic's API is otherwise not reachable from browser JS (no CORS)
+        // -- this opts into it for exactly the bring-your-own-key case.
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({ model:AI_MODEL, max_tokens:500, system:systemPrompt, messages:[{role:'user', content:userText}] })
     });
-    if(!resp.ok) return {ok:false, error:`Lookup service returned ${resp.status}`};
+    if(!resp.ok){
+      if(resp.status === 401) return {ok:false, error:'That API key was rejected. Check it in Settings.'};
+      return {ok:false, error:`Lookup service returned ${resp.status}`};
+    }
     const data = await resp.json();
     const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
     // Models occasionally wrap JSON in prose or fences; pull out the object.
@@ -2137,6 +2186,23 @@ async function render(){
   }
 }
 
+// Switching bottom-nav tabs used to be an instant hard cut, which read as a
+// different (cheaper) transition language than the day-swipe's slide. A short
+// cross-fade puts both on the same footing without slowing navigation down.
+let viewSwitching = false;
+async function switchView(view){
+  if(view === currentView || viewSwitching) return;
+  const app = document.getElementById('app');
+  if(!app || prefersReducedMotion()){ currentView = view; await render(); return; }
+  viewSwitching = true;
+  try{
+    await app.animate([{opacity:1},{opacity:0}], {duration:100, easing:'ease-out'}).finished;
+    currentView = view;
+    await render();
+    await app.animate([{opacity:0},{opacity:1}], {duration:140, easing:'ease-out'}).finished;
+  } finally { viewSwitching = false; }
+}
+
 function renderErrorBoundary(err){
   const app = document.getElementById('app');
   if(!app) return;
@@ -2179,21 +2245,17 @@ function renderBottomNav(){
     </button>`).join('')}</nav>`;
 }
 
-async function renderTodayView(myToken){
-  const key = dateStr(currentDate);
-  const day = await getOrInitDay(key, currentDate);
-  const weekly = await computeWeeklyAverage();
-  if(myToken !== renderToken) return; // a newer render has since started; abandon this one
-
+/* Pure: the day's content only, with no dependency on global state beyond its
+   arguments. Shared by the normal render path and the swipe-transition path
+   so the two can never visually diverge. */
+function buildDayPaneHTML(date, day, weekly){
   const type = day.type;
   const target = targetFor(type);
   const planTotal = dayTotals(day.meals);
   const eaten = checkedTotals(day.meals);
-
-  const app = document.getElementById('app');
-  app.innerHTML = `
+  return `
     ${renderTopTabs()}
-    ${renderHeader(currentDate, type)}
+    ${renderHeader(date, type)}
     <main>
       ${renderMacroPanel(eaten, planTotal, target, type)}
       ${renderWeeklyPanel(weekly)}
@@ -2202,6 +2264,22 @@ async function renderTodayView(myToken){
       ${renderTrainingPanel(day)}
       ${renderMealList(day.meals)}
     </main>
+  `;
+}
+
+async function renderTodayView(myToken){
+  const key = dateStr(currentDate);
+  const day = await getOrInitDay(key, currentDate);
+  const weekly = await computeWeeklyAverage();
+  if(myToken !== renderToken) return; // a newer render has since started; abandon this one
+
+  // The bottom nav and FAB live outside the swipe stage: they describe the
+  // app, not the day, so they should never move or rebuild when the day does.
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="swipe-stage" id="swipeStage">
+      <div class="swipe-pane" id="swipePane">${buildDayPaneHTML(currentDate, day, weekly)}</div>
+    </div>
     ${renderModalHTML()}
     <button type="button" class="fab" data-action="open-add-meal" aria-label="Add a meal">+</button>
     ${renderBottomNav()}
@@ -2493,6 +2571,14 @@ function renderSettingsSections(){
     </section>
 
     <section class="progress-card">
+      <h2 class="panel-head">AI food lookup</h2>
+      <label class="field-label" for="aiApiKeyInput">Anthropic API key</label>
+      <input type="password" id="aiApiKeyInput" class="text-input" autocomplete="off" spellcheck="false"
+             value="${escapeHtml(prof.aiApiKey||'')}" placeholder="sk-ant-...">
+      <div class="hint-text">Powers "Look up with AI" when a food isn&rsquo;t in the database. Stored only on this device, sent only to Anthropic&rsquo;s API when you look something up &mdash; paste in the key you were given (the same key works on everyone&rsquo;s device). Without one, AI lookup stays off.</div>
+    </section>
+
+    <section class="progress-card">
       <h2 class="panel-head">Data</h2>
       <div class="settings-row"><span>Backup your data</span><button type="button" class="link-btn" data-action="backup">Download</button></div>
       <div class="settings-row"><span>Import a backup</span><button type="button" class="link-btn" data-action="import">Import</button></div>
@@ -2514,6 +2600,11 @@ function attachSettingsEvents(){
       render();
     });
   }
+  const aiKeyInput = document.getElementById('aiApiKeyInput');
+  if(aiKeyInput) aiKeyInput.addEventListener('change', (e)=>{
+    meta.profile.aiApiKey = e.target.value.trim();
+    persistMeta();
+  });
   const modeSel = document.getElementById('targetsModeSelect');
   if(modeSel) modeSel.addEventListener('change', (e)=>{
     const mode = e.target.value;
@@ -2693,6 +2784,14 @@ async function clearUnloggedDays(){
 async function finishOnboarding(){
   const s = onboardState;
   const prof = meta.profile;
+  // Entering setup again touches nothing on its own -- only finishing it
+  // overwrites the plan, so this is where undo protection actually belongs,
+  // in place of a confirm() gate at entry.
+  const wasOnboarded = prof.onboarded;
+  const prevShape = deepClone({
+    templates: prof.templates, targetsMode: prof.targetsMode,
+    targets: prof.targets, dayTypes: prof.dayTypes,
+  });
   if(s.mode === 'plan'){
     prof.templates = { training: deepClone(DEFAULT_TRAINING_TEMPLATE), rest: deepClone(DEFAULT_REST_TEMPLATE) };
     prof.targetsMode = 'auto';
@@ -2719,6 +2818,18 @@ async function finishOnboarding(){
   currentView = 'today';
   currentDate = new Date();
   render();
+  // First-time setup has nothing meaningful to revert to; only a re-run,
+  // which just replaced an existing plan, gets the undo offer.
+  if(wasOnboarded){
+    offerUndo('Plan updated from setup', async ()=>{
+      prof.templates = prevShape.templates;
+      prof.targetsMode = prevShape.targetsMode;
+      prof.targets = prevShape.targets;
+      prof.dayTypes = prevShape.dayTypes;
+      await persistMeta();
+      render();
+    });
+  }
 }
 function attachOnboardingEvents(){
   const wrap = document.querySelector('.onboard-wrap');
@@ -2810,8 +2921,17 @@ function savePlanMeal(idx, name, items, manualMacros){
   render();
 }
 function deletePlanMeal(idx){
-  meta.profile.templates[planEditType].splice(idx, 1);
+  const tpl = meta.profile.templates[planEditType];
+  const removed = tpl[idx];
+  if(!removed) return;
+  const type = planEditType;
+  tpl.splice(idx, 1);
   persistMeta();
+  offerUndo(`Removed "${removed.name}" from the plan`, async ()=>{
+    meta.profile.templates[type].splice(idx, 0, removed);
+    await persistMeta();
+    render();
+  });
   render();
 }
 
@@ -3481,45 +3601,87 @@ function attachSwipeNavigation(){
   };
   const clearHint = ()=>{ hint.className = 'swipe-hint'; hint.style.opacity = ''; };
 
+  // The element that actually moves during a drag/animation. Chrome (bottom
+  // nav, FAB) lives outside it and never participates.
+  const dragTarget = ()=> document.getElementById('swipePane') || app;
+
   // Cancelled drag: spring back to center. This part was never the problem.
   const springBack = ()=>{
-    app.style.transition = 'transform .22s var(--ease)';
-    app.style.transform = '';
-    setTimeout(()=>{ if(!animating) app.style.transition = ''; }, 240);
+    const el = dragTarget();
+    el.style.transition = 'transform .22s var(--ease)';
+    el.style.transform = '';
+    setTimeout(()=>{ if(!animating) el.style.transition = ''; }, 240);
   };
 
-  // Committed drag: the outgoing day finishes leaving in the SAME direction it
-  // was already moving, THEN the date changes while off-screen and invisible,
-  // THEN the incoming day slides in from the opposite edge. Previously the
-  // content was swapped mid-way through a snap-BACK-to-center animation, so the
-  // old day was still visibly animating when it suddenly became different data.
+  // Committed drag: prefetch the target day's data and pre-build its markup
+  // BEFORE moving a single pixel, then run one continuous animation where the
+  // outgoing and incoming panes slide together as a pair. Because both panes
+  // are real, already-rendered DOM sitting side by side inside an
+  // overflow:hidden stage, there is no frame where the stage shows nothing --
+  // no fetch-then-jump-cut gap, no dead time waiting on render().
   async function animateToDay(direction){
+    const stage = document.getElementById('swipeStage');
+    const outgoingPane = document.getElementById('swipePane');
+    if(!stage || !outgoingPane){ currentDate.setDate(currentDate.getDate() + direction); render(); return; }
+
     animating = true;
-    const width = app.getBoundingClientRect().width || 390;
-    const exitX = -direction * width * 1.05;
-    const enterFrom = direction * width * 1.05;
+    const stageWidth = stage.getBoundingClientRect().width || 390;
 
-    app.style.transition = 'transform .2s var(--ease), opacity .2s var(--ease)';
-    app.style.transform = `translateX(${exitX}px)`;
-    app.style.opacity = '0.55';
-    await wait(200);
+    const targetDate = new Date(currentDate);
+    targetDate.setDate(targetDate.getDate() + direction);
+    const targetKey = dateStr(targetDate);
 
-    currentDate.setDate(currentDate.getDate() + direction);
-    await render();
+    // All async work happens up front, while the screen is still perfectly
+    // still showing the outgoing day -- nothing to see is ever mid-fetch.
+    const [day, weekly] = await Promise.all([
+      getOrInitDay(targetKey, targetDate),
+      computeWeeklyAverage(),
+    ]);
+    const incomingHTML = buildDayPaneHTML(targetDate, day, weekly);
+    // Commit the date now: everything needed to paint the outgoing pane was
+    // already captured in its existing DOM, and nothing else reads
+    // currentDate until this gesture is long finished.
+    currentDate = targetDate;
 
-    app.style.transition = 'none';
-    app.style.transform = `translateX(${enterFrom}px)`;
-    app.style.opacity = '0.55';
-    void app.offsetWidth; // force layout so the jump above isn't itself animated
+    if(prefersReducedMotion()){
+      outgoingPane.innerHTML = incomingHTML;
+      attachBodyLogEvents();
+      if(modalState) attachModalEvents();
+      animating = false;
+      return;
+    }
 
-    app.style.transition = 'transform .24s var(--ease), opacity .24s var(--ease)';
-    app.style.transform = 'translateX(0)';
-    app.style.opacity = '1';
-    await wait(240);
+    // Lock the stage's height across the transition -- the two days can have
+    // a different number of meals, and overflow:hidden must not clip whichever
+    // is taller mid-slide.
+    stage.style.height = outgoingPane.offsetHeight + 'px';
 
-    app.style.transition = '';
-    app.style.transform = '';
-    app.style.opacity = '';
+    const incomingPane = document.createElement('div');
+    incomingPane.className = 'swipe-pane';
+    incomingPane.style.cssText = `position:absolute;top:0;left:0;width:100%;transform:translateX(${direction * stageWidth}px);`;
+    incomingPane.innerHTML = incomingHTML;
+    stage.appendChild(incomingPane);
+    stage.style.height = Math.max(outgoingPane.offsetHeight, incomingPane.offsetHeight) + 'px';
+    outgoingPane.style.cssText = 'position:absolute;top:0;left:0;width:100%;';
+    void stage.offsetWidth; // commit starting transforms before animating
+
+    const dur = 260, easing = 'cubic-bezier(.22,.61,.36,1)';
+    const outAnim = outgoingPane.animate(
+      [{transform:'translateX(0)'}, {transform:`translateX(${-direction * stageWidth}px)`}],
+      {duration:dur, easing, fill:'forwards'});
+    const inAnim = incomingPane.animate(
+      [{transform:`translateX(${direction * stageWidth}px)`}, {transform:'translateX(0)'}],
+      {duration:dur, easing, fill:'forwards'});
+    await Promise.all([outAnim.finished, inAnim.finished]);
+
+    // Promote the incoming pane to be the live one and drop the old one.
+    incomingPane.id = 'swipePane';
+    incomingPane.style.cssText = '';
+    outgoingPane.remove();
+    stage.style.height = '';
+
+    attachBodyLogEvents();
+    if(modalState) attachModalEvents();
     animating = false;
   }
 
@@ -3538,9 +3700,10 @@ function attachSwipeNavigation(){
       if(Math.abs(dx) < 12) return;
       tracking = true;
     }
-    // Rubber-band the page so the drag feels attached to the finger.
+    // Rubber-band the day's content so the drag feels attached to the finger;
+    // the nav bar and FAB hold still throughout.
     const damped = Math.sign(dx) * Math.min(Math.abs(dx) * 0.45, 48);
-    app.style.transform = `translateX(${damped.toFixed(1)}px)`;
+    dragTarget().style.transform = `translateX(${damped.toFixed(1)}px)`;
     setHint(dx);
   }, {passive:true});
 
@@ -3568,7 +3731,7 @@ document.getElementById('app').addEventListener('click', (e)=>{
   if(!el) return;
   const key = dateStr(currentDate);
   const action = el.dataset.action;
-  if(action==='switch-view'){ currentView = el.dataset.view; render(); }
+  if(action==='switch-view'){ switchView(el.dataset.view); }
   else if(action==='prev-day'){ currentDate.setDate(currentDate.getDate()-1); render(); }
   else if(action==='next-day'){ currentDate.setDate(currentDate.getDate()+1); render(); }
   else if(action==='go-today'){ currentDate = new Date(); render(); }
@@ -3580,7 +3743,7 @@ document.getElementById('app').addEventListener('click', (e)=>{
   else if(action==='close-plan-editor'){ currentView='settings'; render(); }
   else if(action==='add-plan-meal'){ openPlanMealModal(null); }
   else if(action==='edit-plan-meal'){ openPlanMealModal(parseInt(el.dataset.idx,10)); }
-  else if(action==='delete-plan-meal'){ if(confirm('Remove this meal from the plan?')) deletePlanMeal(parseInt(el.dataset.idx,10)); }
+  else if(action==='delete-plan-meal'){ deletePlanMeal(parseInt(el.dataset.idx,10)); }
   else if(action==='copy-yesterday'){
     const y = new Date(currentDate); y.setDate(y.getDate()-1);
     copyDayFrom(y).then(okd=>{ if(!okd) offerUndo('Nothing logged the day before', null); });
@@ -3615,7 +3778,7 @@ document.getElementById('app').addEventListener('click', (e)=>{
       render();
     }
   }
-  else if(action==='rerun-onboarding'){ if(confirm('Run setup again? Your logged days and foods are kept.')){ meta.profile.onboarded=false; persistMeta(); onboardState=null; render(); } }
+  else if(action==='rerun-onboarding'){ meta.profile.onboarded=false; persistMeta(); onboardState=null; render(); }
   else if(action==='import'){ document.getElementById('importFileInput').click(); }
   else if(action==='toggle-check'){ toggleChecked(key, el.dataset.id); }
   else if(action==='toggle-lifting'){ toggleTraining(key, 'liftingDone'); }
